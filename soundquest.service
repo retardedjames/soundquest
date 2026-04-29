@@ -1,0 +1,17 @@
+[Unit]
+Description=Soundquest backend (removed-songs persistence)
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/opt/soundquest
+Environment=SQ_DATA_DIR=/var/lib/soundquest
+ExecStart=/opt/soundquest/venv/bin/uvicorn backend:app --host 127.0.0.1 --port 8085 --workers 1 --no-access-log
+Restart=on-failure
+RestartSec=2
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
