@@ -70,18 +70,19 @@ input{font:inherit;color:inherit}
   position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
   padding:14px 18px 12px;overflow:hidden;
 }
-@media(min-width:900px){.now{padding:24px;justify-content:center;gap:28px}}
+@media(min-width:900px){.now{padding:24px;justify-content:center;gap:18px}}
 
 .brand{
   display:flex;align-items:center;gap:10px;align-self:flex-start;
   font-weight:700;font-size:14px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);
   margin-bottom:10px;
 }
+@media(min-width:900px){.brand{position:absolute;top:24px;left:24px;margin-bottom:0;z-index:2}}
 .brand .dot{width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 0 14px var(--accent)}
 .brand b{color:var(--fg);letter-spacing:0.18em;font-weight:700}
 
 .cover-wrap{position:relative;width:min(58vw,300px);aspect-ratio:1;perspective:1000px;flex-shrink:0}
-@media(min-width:900px){.cover-wrap{width:min(40vw,420px)}}
+@media(min-width:900px){.cover-wrap{width:min(40vw,50vh,420px)}}
 .cover{
   position:relative;width:100%;height:100%;border-radius:18px;overflow:hidden;
   box-shadow:0 30px 80px -20px rgba(124,58,237,0.5),0 16px 40px -10px rgba(236,72,153,0.3),0 0 0 1px rgba(255,255,255,0.08) inset;
@@ -176,6 +177,9 @@ input{font:inherit;color:inherit}
 
 .playlist-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);flex-shrink:0}
 .playlist-head h2{font-size:14px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted)}
+.playlist-head .head-left{display:flex;align-items:center;gap:6px}
+.playlist-head .ctrl{width:30px;height:30px;border-radius:9px}
+.playlist-head .ctrl svg{width:15px;height:15px}
 .playlist-head .count{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .search{
   margin:10px 14px 4px;display:flex;align-items:center;gap:10px;
@@ -286,9 +290,6 @@ audio{display:none}
       <div class="seek-times"><span id="curTime">0:00</span><span id="totalTime">0:00</span></div>
     </div>
     <div class="controls">
-      <button class="ctrl toggle active" id="btnShuffle" aria-label="Shuffle" title="Shuffle">
-        <svg viewBox="0 0 24 24"><path d="M16 3h5v5h-2V6.41l-9.29 9.3-1.42-1.42L17.59 5H16V3zm-9 11.59L4.71 12.3 3.29 13.71l4 4 11-11-1.42-1.42L7 14.59zM21 16h-2v2h-1.59l-2.7-2.71-1.42 1.42L16.59 20H21v-4z"/></svg>
-      </button>
       <button class="ctrl" id="btnPrev" aria-label="Previous" title="Previous (←)">
         <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6V6zm3.5 6l8.5 6V6l-8.5 6z"/></svg>
       </button>
@@ -310,7 +311,12 @@ audio{display:none}
 
   <aside class="playlist" id="playlist">
     <div class="playlist-head">
-      <h2>Up Next</h2>
+      <div class="head-left">
+        <h2>Up Next</h2>
+        <button class="ctrl toggle active" id="btnShuffle" aria-label="Shuffle" title="Shuffle">
+          <svg viewBox="0 0 24 24"><path d="M16 3h5v5h-2V6.41l-9.29 9.3-1.42-1.42L17.59 5H16V3zm-9 11.59L4.71 12.3 3.29 13.71l4 4 11-11-1.42-1.42L7 14.59zM21 16h-2v2h-1.59l-2.7-2.71-1.42 1.42L16.59 20H21v-4z"/></svg>
+        </button>
+      </div>
       <span class="count" id="count">0</span>
     </div>
     <div class="search">
