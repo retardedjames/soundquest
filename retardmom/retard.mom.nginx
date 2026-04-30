@@ -1,0 +1,44 @@
+server {
+    listen 80;
+    listen [::]:80;
+    server_name retard.mom www.retard.mom;
+
+    root /var/www/retard.mom;
+    index index.html;
+
+    # Gzip-compress text
+    gzip on;
+    gzip_types text/plain text/css application/javascript application/json image/svg+xml application/manifest+json;
+    gzip_min_length 1024;
+
+    # The HTML shell: never cache stale
+    location = /index.html {
+        add_header Cache-Control "no-cache" always;
+    }
+    location = / {
+        try_files /index.html =404;
+        add_header Cache-Control "no-cache" always;
+    }
+
+    # SW must not be aggressively cached or you'll be stuck on old versions.
+    location = /sw.js {
+        add_header Cache-Control "no-cache" always;
+    }
+
+    # PWA + assets — short cache
+    location = /manifest.webmanifest {
+        add_header Cache-Control "public, max-age=300" always;
+        types { } default_type application/manifest+json;
+    }
+    location ~ \.(svg|png|ico|webp)$ {
+        add_header Cache-Control "public, max-age=86400" always;
+    }
+
+    # SPA fallback (we have a single page anyway)
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    access_log /var/log/nginx/retard.mom.access.log;
+    error_log  /var/log/nginx/retard.mom.error.log;
+}

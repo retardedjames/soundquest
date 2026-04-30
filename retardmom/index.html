@@ -1,0 +1,1322 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#0a0612">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="retard.mom">
+<title>retard.mom</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icon.svg">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<style>
+:root {
+  --bg: #0a0612;
+  --fg: #f5f0ff;
+  --fg-mute: #b6a8d4;
+  --fg-dim: #7a6e91;
+  --accent-h: 290;
+  --accent: hsl(var(--accent-h) 90% 65%);
+  --accent2: hsl(calc(var(--accent-h) + 60) 90% 65%);
+  --glass: rgba(255,255,255,0.05);
+  --glass-strong: rgba(255,255,255,0.08);
+  --border: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.16);
+  --shadow-art: 0 30px 80px -20px rgba(0,0,0,0.8), 0 0 80px -20px hsl(var(--accent-h) 90% 50% / 0.4);
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  height: 100%; overflow: hidden;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+body {
+  position: fixed; inset: 0;
+  overscroll-behavior: none;
+}
+@supports (height: 100dvh) {
+  html, body { height: 100dvh; }
+}
+
+/* AMBIENT */
+.ambient { position: fixed; inset: -10vmax; pointer-events: none; z-index: 0; overflow: hidden; }
+.blob {
+  position: absolute; border-radius: 50%;
+  filter: blur(110px);
+  mix-blend-mode: screen;
+  opacity: 0.55;
+  transition: background 4s var(--ease), opacity 1.2s ease;
+  will-change: transform;
+}
+.b1 { width: 60vmax; height: 60vmax; top: -20vmax; left: -10vmax; background: hsl(var(--accent-h) 80% 55%); animation: drift1 38s ease-in-out infinite; }
+.b2 { width: 50vmax; height: 50vmax; bottom: -15vmax; right: -10vmax; background: hsl(calc(var(--accent-h) + 60) 80% 55%); animation: drift2 47s ease-in-out infinite; }
+.b3 { width: 70vmax; height: 70vmax; top: 25vmax; left: 25vmax; background: hsl(calc(var(--accent-h) + 130) 70% 50%); animation: drift3 53s ease-in-out infinite; }
+@keyframes drift1 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(15vmax, 18vmax) scale(1.15); } }
+@keyframes drift2 { 0%,100% { transform: translate(0,0) scale(1.05); } 50% { transform: translate(-12vmax, -10vmax) scale(0.9); } }
+@keyframes drift3 { 0%,100% { transform: translate(0,0) scale(0.95); } 33% { transform: translate(-10vmax, 12vmax) scale(1.1); } 66% { transform: translate(8vmax, -8vmax) scale(0.85); } }
+
+.grain {
+  position: fixed; inset: 0; pointer-events: none; z-index: 1;
+  opacity: 0.10; mix-blend-mode: overlay;
+  width: 100%; height: 100%;
+}
+
+/* APP */
+.app {
+  position: relative; z-index: 2;
+  display: grid;
+  height: 100%;
+  grid-template-rows: auto 1fr;
+  grid-template-columns: 1fr;
+  gap: 0;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
+}
+@media (min-width: 900px) {
+  .app {
+    grid-template-rows: 1fr;
+    grid-template-columns: minmax(0, 1fr) min(460px, 38vw);
+    gap: 24px;
+    padding: 32px;
+    padding-top: max(32px, env(safe-area-inset-top));
+  }
+}
+
+/* PLAYER */
+.player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 12px 18px 14px;
+  min-height: 0;
+}
+@media (min-width: 900px) {
+  .player {
+    justify-content: center;
+    padding: 0;
+    gap: 22px;
+  }
+}
+
+.art-stage {
+  position: relative;
+  width: min(74vw, 360px);
+  aspect-ratio: 1;
+  margin: 4px 0 4px;
+}
+@media (min-width: 900px) {
+  .art-stage { width: min(48vh, 420px); }
+}
+
+.vinyl {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background:
+    repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,0.04) 0 1px, transparent 1px 4px),
+    radial-gradient(circle at 50% 50%, #1a1218 0 30%, #050306 32% 100%);
+  box-shadow:
+    0 12px 40px -10px rgba(0,0,0,0.7),
+    inset 0 0 40px rgba(0,0,0,0.6);
+  transform: translateX(0%) rotate(0deg);
+  transition: transform 0.85s var(--ease-out);
+  z-index: 1;
+}
+.vinyl::before {
+  content: '';
+  position: absolute;
+  inset: 32%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 50%, hsl(var(--accent-h) 90% 60%) 0 40%, hsl(calc(var(--accent-h) + 30) 80% 50%) 70%, #100716 100%);
+  box-shadow: inset 0 0 12px rgba(0,0,0,0.5);
+}
+.vinyl::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 6px; height: 6px;
+  margin: -3px 0 0 -3px;
+  background: #050306;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.06);
+}
+.is-playing .vinyl {
+  animation: spin 4.4s linear infinite;
+  transform: translateX(58%);
+}
+@media (min-width: 900px) {
+  .is-playing .vinyl { transform: translateX(62%); }
+  @keyframes spin { to { transform: translateX(62%) rotate(360deg); } }
+}
+@keyframes spin {
+  to { transform: translateX(58%) rotate(360deg); }
+}
+
+.art {
+  position: relative;
+  width: 100%; height: 100%;
+  border-radius: 24px;
+  display: block;
+  z-index: 2;
+  box-shadow: var(--shadow-art);
+  transition: box-shadow 1s var(--ease), filter 0.5s var(--ease);
+  filter: saturate(1.05);
+}
+.is-playing .art {
+  animation: breathe 4.5s ease-in-out infinite;
+}
+@keyframes breathe {
+  0%, 100% { transform: scale(1); box-shadow: var(--shadow-art); }
+  50% { transform: scale(1.012); box-shadow:
+    0 30px 80px -20px rgba(0,0,0,0.8),
+    0 0 110px -10px hsl(var(--accent-h) 90% 50% / 0.55);
+  }
+}
+.art-shimmer {
+  position: absolute; inset: 0;
+  border-radius: 24px;
+  background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.18) 50%, transparent 70%);
+  background-size: 220% 100%;
+  animation: shimmer 1.4s linear infinite;
+  z-index: 3; pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  mix-blend-mode: overlay;
+}
+.is-loading .art-shimmer { opacity: 1; }
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.meta {
+  text-align: center;
+  width: 100%;
+  max-width: 460px;
+  padding: 0 8px;
+  min-height: 56px;
+}
+.title {
+  font-size: clamp(20px, 5.2vw, 28px);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.artist {
+  font-size: 14px;
+  color: var(--fg-mute);
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* SEEK */
+.seek {
+  width: 100%;
+  max-width: 460px;
+  padding: 0 8px;
+}
+.seek-track {
+  position: relative;
+  height: 22px;
+  display: flex; align-items: center;
+  cursor: pointer;
+  touch-action: none;
+}
+.seek-track::before {
+  content: '';
+  position: absolute; left: 0; right: 0;
+  height: 4px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 99px;
+}
+.seek-buffer {
+  position: absolute; left: 0;
+  height: 4px;
+  background: rgba(255,255,255,0.16);
+  border-radius: 99px;
+  transition: width 0.3s linear;
+  width: 0;
+}
+.seek-progress {
+  position: absolute; left: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 99px;
+  box-shadow: 0 0 12px hsl(var(--accent-h) 90% 60% / 0.5);
+  width: 0;
+}
+.seek-thumb {
+  position: absolute;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  margin-left: -7px;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.2s, transform 0.2s var(--ease);
+  left: 0;
+}
+.seek-track:hover .seek-thumb, .seek-track.is-dragging .seek-thumb { opacity: 1; transform: scale(1); }
+.times {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-dim);
+}
+
+/* CONTROLS */
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 2px;
+}
+.ctl {
+  background: transparent;
+  border: 0;
+  color: var(--fg-mute);
+  cursor: pointer;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  position: relative;
+  transition: color 0.2s, background 0.2s, transform 0.2s var(--ease);
+  -webkit-tap-highlight-color: transparent;
+}
+.ctl:hover { color: var(--fg); background: var(--glass); }
+.ctl:active { transform: scale(0.92); }
+.ctl svg { width: 22px; height: 22px; }
+.ctl.is-on { color: var(--accent); }
+.ctl.is-on::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%; margin-left: -2px;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+}
+
+.ctl.play {
+  width: 64px; height: 64px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #08040c;
+  box-shadow: 0 14px 30px -8px hsl(var(--accent-h) 90% 50% / 0.6), 0 4px 12px rgba(0,0,0,0.4);
+  transition: transform 0.2s var(--ease), box-shadow 0.4s var(--ease), background 0.6s ease;
+}
+.ctl.play:hover { color: #08040c; background: linear-gradient(135deg, var(--accent2), var(--accent)); }
+.ctl.play svg { width: 28px; height: 28px; }
+.ctl.play:active { transform: scale(0.93); }
+
+.vol {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 220px;
+  margin-top: 6px;
+  color: var(--fg-dim);
+}
+.vol svg { width: 16px; height: 16px; }
+.vol input[type=range] {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  height: 22px;
+}
+.vol input[type=range]::-webkit-slider-runnable-track {
+  height: 3px; border-radius: 99px; background: rgba(255,255,255,0.12);
+}
+.vol input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px; height: 12px;
+  background: #fff; border-radius: 50%;
+  margin-top: -4.5px;
+  cursor: pointer;
+}
+.vol input[type=range]::-moz-range-track { height: 3px; border-radius: 99px; background: rgba(255,255,255,0.12); }
+.vol input[type=range]::-moz-range-thumb { width: 12px; height: 12px; background: #fff; border: 0; border-radius: 50%; }
+@media (min-width: 900px) { .vol { display: flex; } }
+
+/* PLAYLIST */
+.playlist {
+  display: flex;
+  flex-direction: column;
+  background: rgba(20, 12, 32, 0.55);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+  border-right: 0;
+  border-bottom: 0;
+  border-radius: 22px 22px 0 0;
+  margin: 0;
+  overflow: hidden;
+  min-height: 0;
+}
+@media (min-width: 900px) {
+  .playlist { border-radius: 22px; border: 1px solid var(--border); }
+}
+.playlist > header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 18px 8px;
+  flex-shrink: 0;
+}
+.playlist h2 {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  font-weight: 700;
+  color: var(--fg-mute);
+  text-transform: uppercase;
+}
+.count {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--fg-dim);
+  font-variant-numeric: tabular-nums;
+}
+.search {
+  position: relative;
+  margin: 0 14px 8px;
+  flex-shrink: 0;
+}
+.search-icon {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  color: var(--fg-dim);
+  pointer-events: none;
+  display: grid; place-items: center;
+}
+.search input {
+  width: 100%;
+  padding: 10px 12px 10px 36px;
+  background: var(--glass);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+.search input::placeholder { color: var(--fg-dim); }
+.search input:focus { border-color: var(--border-strong); background: var(--glass-strong); }
+
+.rows {
+  list-style: none;
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 6px 14px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.1) transparent;
+}
+.rows::-webkit-scrollbar { width: 6px; }
+.rows::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 99px; }
+
+.row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 40px 1fr 22px;
+  gap: 10px;
+  align-items: center;
+  padding: 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.25s var(--ease), opacity 0.25s;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: pan-y;
+}
+.row:hover { background: var(--glass); }
+.row.is-active {
+  background: linear-gradient(90deg, hsl(var(--accent-h) 80% 50% / 0.18), hsl(var(--accent-h) 80% 50% / 0.04));
+  box-shadow: inset 0 0 0 1px hsl(var(--accent-h) 80% 50% / 0.3);
+}
+.row .thumb {
+  width: 40px; height: 40px;
+  border-radius: 8px;
+  display: block;
+}
+.row .info { min-width: 0; }
+.row .row-title {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.row .row-artist {
+  font-size: 12px;
+  color: var(--fg-dim);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.row.is-active .row-title { color: var(--accent); }
+.row .eq {
+  display: none;
+  width: 18px; height: 18px;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+.row.is-active .eq { display: flex; }
+.eq span {
+  width: 3px;
+  background: var(--accent);
+  border-radius: 99px;
+  display: block;
+  animation: eq 0.9s ease-in-out infinite;
+}
+.eq span:nth-child(1) { animation-delay: 0s; }
+.eq span:nth-child(2) { animation-delay: 0.2s; }
+.eq span:nth-child(3) { animation-delay: 0.45s; }
+@keyframes eq {
+  0%, 100% { height: 30%; }
+  50% { height: 100%; }
+}
+.row.is-paused .eq span { animation-play-state: paused; }
+
+.row .swipe-hint {
+  position: absolute; right: 0; top: 0; bottom: 0;
+  width: 110px;
+  display: flex; align-items: center; justify-content: flex-end;
+  padding-right: 16px;
+  background: linear-gradient(90deg, transparent, hsl(0 80% 50% / 0.5));
+  color: #ffd5d5;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: 0 10px 10px 0;
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+.row.is-swiping .swipe-hint { opacity: 1; }
+.row.is-swiping { transition: none; }
+.row.is-removing {
+  transition: transform 0.35s var(--ease-in), opacity 0.3s, max-height 0.35s var(--ease-in), padding 0.35s var(--ease-in), margin 0.35s var(--ease-in);
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0; padding-bottom: 0;
+  margin: 0; pointer-events: none;
+  overflow: hidden;
+}
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translate(-50%, 30px);
+  background: rgba(20, 12, 32, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-strong);
+  color: var(--fg);
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.4s var(--ease-out);
+  pointer-events: none;
+  max-width: 80vw;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.toast.is-show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* boot fade */
+.app, .ambient { opacity: 0; animation: fadeIn 1.2s var(--ease-out) 0.05s forwards; }
+@keyframes fadeIn { to { opacity: 1; } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="grain">
+    <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/>
+    <feColorMatrix values="0 0 0 0 1   0 0 0 0 1   0 0 0 0 1   0 0 0 0.5 0"/>
+  </filter>
+</svg>
+<svg class="grain" preserveAspectRatio="none" aria-hidden="true"><rect width="100%" height="100%" filter="url(#grain)"/></svg>
+<div class="ambient"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+
+<main class="app">
+  <section class="player">
+    <div class="art-stage">
+      <div class="vinyl"></div>
+      <canvas class="art" width="640" height="640" aria-hidden="true"></canvas>
+      <div class="art-shimmer"></div>
+    </div>
+    <div class="meta">
+      <h1 class="title">—</h1>
+      <p class="artist">—</p>
+    </div>
+    <div class="seek">
+      <div class="seek-track" id="seek">
+        <div class="seek-buffer"></div>
+        <div class="seek-progress"></div>
+        <div class="seek-thumb"></div>
+      </div>
+      <div class="times"><span class="time-cur">0:00</span><span class="time-tot">0:00</span></div>
+    </div>
+    <div class="controls">
+      <button class="ctl shuffle" id="btn-shuffle" aria-label="Shuffle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20l17-17"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg></button>
+      <button class="ctl prev" id="btn-prev" aria-label="Previous"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 5v14L8 12zM5 5h2v14H5z"/></svg></button>
+      <button class="ctl play" id="btn-play" aria-label="Play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+      <button class="ctl next" id="btn-next" aria-label="Next"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 5l11 7-11 7zm12 0h2v14h-2z"/></svg></button>
+      <button class="ctl repeat" id="btn-repeat" aria-label="Repeat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg></button>
+    </div>
+    <div class="vol">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 10v4h3l5 4V6L6 10H3zm12-1.5v7c1.4-.7 2.3-2.2 2.3-3.5S16.4 9.2 15 8.5z"/></svg>
+      <input type="range" id="vol" min="0" max="100" value="80" aria-label="Volume">
+    </div>
+  </section>
+  <section class="playlist">
+    <header>
+      <h2>PLAYLIST</h2>
+      <span class="count" id="count"></span>
+    </header>
+    <div class="search">
+      <span class="search-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
+      <input id="search" type="search" placeholder="Search artist or title" autocomplete="off" autocorrect="off" spellcheck="false">
+    </div>
+    <ol class="rows" id="rows"></ol>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+
+<audio id="a1" preload="auto"></audio>
+<audio id="a2" preload="auto"></audio>
+
+<script>
+"use strict";
+
+const TRACKS = [{"f":"100 gecs - money machine.opus","a":"100 gecs","t":"money machine"},{"f":"6ix9ine - KOODA.opus","a":"6ix9ine","t":"KOODA"},{"f":"A Boogie wit da Hoodie - Drowning (feat. Kodak Black).opus","a":"A Boogie wit da Hoodie","t":"Drowning (feat. Kodak Black)"},{"f":"A Boogie wit da Hoodie - Look Back At It.opus","a":"A Boogie wit da Hoodie","t":"Look Back At It"},{"f":"A Boogie wit da Hoodie - Me and My Guitar.opus","a":"A Boogie wit da Hoodie","t":"Me and My Guitar"},{"f":"A Boogie wit da Hoodie - Still Think About You.opus","a":"A Boogie wit da Hoodie","t":"Still Think About You"},{"f":"A Boogie wit da Hoodie - Swervin (feat. 6ix9ine).opus","a":"A Boogie wit da Hoodie","t":"Swervin (feat. 6ix9ine)"},{"f":"A$AP Rocky - Praise the Lord (Da Shine) (feat. Skepta).opus","a":"A$AP Rocky","t":"Praise the Lord (Da Shine) (feat. Skepta)"},{"f":"AGTHA - Crystal Castles - Kept (AGTHA REMIX).opus","a":"AGTHA","t":"Crystal Castles - Kept (AGTHA REMIX)"},{"f":"Albert King - Born Under a Bad Sign.opus","a":"Albert King","t":"Born Under a Bad Sign"},{"f":"Algae Bloom - ListsLeaves.opus","a":"Algae Bloom","t":"ListsLeaves"},{"f":"Alice Glass - EVERYBODY ELSE.opus","a":"Alice Glass","t":"EVERYBODY ELSE"},{"f":"Alice Glass - I TRUSTED YOU.opus","a":"Alice Glass","t":"I TRUSTED YOU"},{"f":"Alice Glass - LOVE IS VIOLENCE.opus","a":"Alice Glass","t":"LOVE IS VIOLENCE"},{"f":"Alice Glass - PREY.opus","a":"Alice Glass","t":"PREY"},{"f":"Alice Glass - SUFFER AND SWALLOW.opus","a":"Alice Glass","t":"SUFFER AND SWALLOW"},{"f":"Alice Glass - THE HUNTED.opus","a":"Alice Glass","t":"THE HUNTED"},{"f":"Alvvays - Archie, Marry Me.opus","a":"Alvvays","t":"Archie, Marry Me"},{"f":"Alvvays - Atop a Cake.opus","a":"Alvvays","t":"Atop a Cake"},{"f":"America - Ventura Highway.opus","a":"America","t":"Ventura Highway"},{"f":"Amy Winehouse - Back to Black.opus","a":"Amy Winehouse","t":"Back to Black"},{"f":"Arctic Monkeys - 505.opus","a":"Arctic Monkeys","t":"505"},{"f":"Arctic Monkeys - Do I Wanna Know.opus","a":"Arctic Monkeys","t":"Do I Wanna Know"},{"f":"Artemas - i like the way you kiss me.opus","a":"Artemas","t":"i like the way you kiss me"},{"f":"Bailey Zimmerman - Rock and a Hard Place.opus","a":"Bailey Zimmerman","t":"Rock and a Hard Place"},{"f":"Beach House - Myth.opus","a":"Beach House","t":"Myth"},{"f":"Belle and Sebastian - A Century of Elvis.opus","a":"Belle and Sebastian","t":"A Century of Elvis"},{"f":"Benson Boone - Beautiful Things.opus","a":"Benson Boone","t":"Beautiful Things"},{"f":"Bicep - Apricots.opus","a":"Bicep","t":"Apricots"},{"f":"Bicep - Atlas.opus","a":"Bicep","t":"Atlas"},{"f":"Bicep - Glue.opus","a":"Bicep","t":"Glue"},{"f":"Bicep - JUST.opus","a":"Bicep","t":"JUST"},{"f":"Bicep - Lido.opus","a":"Bicep","t":"Lido"},{"f":"Bicep - Meli (II).opus","a":"Bicep","t":"Meli (II)"},{"f":"Bicep - Opal - Four Tet Remix.opus","a":"Bicep","t":"Opal - Four Tet Remix"},{"f":"Bicep - Water.opus","a":"Bicep","t":"Water"},{"f":"Bicep - Waterfall.opus","a":"Bicep","t":"Waterfall"},{"f":"Big Thief - Not.opus","a":"Big Thief","t":"Not"},{"f":"Big Thief - Shark Smile - Edit.opus","a":"Big Thief","t":"Shark Smile - Edit"},{"f":"BigXthaPlug - All the Way (feat. Bailey Zimmerman).opus","a":"BigXthaPlug","t":"All the Way (feat. Bailey Zimmerman)"},{"f":"BigXthaPlug - Hell At Night (feat. Ella Langley).opus","a":"BigXthaPlug","t":"Hell At Night (feat. Ella Langley)"},{"f":"Bill Withers - Ain't No Sunshine.opus","a":"Bill Withers","t":"Ain't No Sunshine"},{"f":"Billie Eilish - BIRDS OF A FEATHER.opus","a":"Billie Eilish","t":"BIRDS OF A FEATHER"},{"f":"Black Kray - Iced Out Castles.opus","a":"Black Kray","t":"Iced Out Castles"},{"f":"Bladee - BBY.opus","a":"Bladee","t":"BBY"},{"f":"Bladee - Girls just want to have fun.opus","a":"Bladee","t":"Girls just want to have fun"},{"f":"Bladee - I Think....opus","a":"Bladee","t":"I Think..."},{"f":"Bladee - Obedient.opus","a":"Bladee","t":"Obedient"},{"f":"Bladee - Oh Well.opus","a":"Bladee","t":"Oh Well"},{"f":"Bladee - Reality Surf.opus","a":"Bladee","t":"Reality Surf"},{"f":"Bladee - Thee 9 Is Up.opus","a":"Bladee","t":"Thee 9 Is Up"},{"f":"Bladee - Trendy.opus","a":"Bladee","t":"Trendy"},{"f":"Bladee - desiree.opus","a":"Bladee","t":"desiree"},{"f":"Bladee - egobaby.opus","a":"Bladee","t":"egobaby"},{"f":"Bob Dylan - Girl From the North Country.opus","a":"Bob Dylan","t":"Girl From the North Country"},{"f":"Bob Dylan - Lay Lady Lay.opus","a":"Bob Dylan","t":"Lay Lady Lay"},{"f":"Bob Dylan - Simple Twist of Fate.opus","a":"Bob Dylan","t":"Simple Twist of Fate"},{"f":"Brand New - Sowing Season (Yeah).opus","a":"Brand New","t":"Sowing Season (Yeah)"},{"f":"Brooks & Dunn - Neon Moon.opus","a":"Brooks & Dunn","t":"Neon Moon"},{"f":"Buffalo Springfield - For What It's Worth.opus","a":"Buffalo Springfield","t":"For What It's Worth"},{"f":"Built to Spill - Carry the Zero.opus","a":"Built to Spill","t":"Carry the Zero"},{"f":"Burial - Archangel.opus","a":"Burial","t":"Archangel"},{"f":"Burial - Come Down to Us.opus","a":"Burial","t":"Come Down to Us"},{"f":"Burial - Nova.opus","a":"Burial","t":"Nova"},{"f":"Camila Cabello - Havana (feat. Young Thug).opus","a":"Camila Cabello","t":"Havana (feat. Young Thug)"},{"f":"Can't Swim - Your Clothes.opus","a":"Can't Swim","t":"Your Clothes"},{"f":"Cannons - Fire For You.opus","a":"Cannons","t":"Fire For You"},{"f":"Cardi B - Bodak Yellow.opus","a":"Cardi B","t":"Bodak Yellow"},{"f":"Cartier God - Let Me Go.opus","a":"Cartier God","t":"Let Me Go"},{"f":"Cass McCombs - Bum Bum Bum.opus","a":"Cass McCombs","t":"Bum Bum Bum"},{"f":"Chief Keef - Hate Bein' Sober (feat. 50 Cent & Wiz Khalifa).opus","a":"Chief Keef","t":"Hate Bein' Sober (feat. 50 Cent & Wiz Khalifa)"},{"f":"Chief Keef - I Don't Like.opus","a":"Chief Keef","t":"I Don't Like"},{"f":"Chief Keef - Love Sosa.opus","a":"Chief Keef","t":"Love Sosa"},{"f":"Chris Stapleton - Cold.opus","a":"Chris Stapleton","t":"Cold"},{"f":"Chris Stapleton - Tennessee Whiskey.opus","a":"Chris Stapleton","t":"Tennessee Whiskey"},{"f":"Chris Stapleton - You Should Probably Leave.opus","a":"Chris Stapleton","t":"You Should Probably Leave"},{"f":"Christopher Cross - Ride Like the Wind.opus","a":"Christopher Cross","t":"Ride Like the Wind"},{"f":"Christopher Cross - Sailing.opus","a":"Christopher Cross","t":"Sailing"},{"f":"Ciara - Like a Boy.opus","a":"Ciara","t":"Like a Boy"},{"f":"Cigarettes After Sex - Cry.opus","a":"Cigarettes After Sex","t":"Cry"},{"f":"Circle Takes the Square - In the Nervous Light of Sunday.opus","a":"Circle Takes the Square","t":"In the Nervous Light of Sunday"},{"f":"City of Caterpillar - A Heart Filled Reaction to Dissatisfaction.opus","a":"City of Caterpillar","t":"A Heart Filled Reaction to Dissatisfaction"},{"f":"City of Caterpillar - And You're Wondering How a Top Floor Could Replace Heaven.opus","a":"City of Caterpillar","t":"And You're Wondering How a Top Floor Could Replace Heaven"},{"f":"City of Caterpillar - Minute-Hour-Day-Week-Month-Year (The Faith's In My Chest).opus","a":"City of Caterpillar","t":"Minute-Hour-Day-Week-Month-Year (The Faith's In My Chest)"},{"f":"Clairo - Bags.opus","a":"Clairo","t":"Bags"},{"f":"Cloud Nothings - Wasted Days.opus","a":"Cloud Nothings","t":"Wasted Days"},{"f":"Creedence Clearwater Revival - Green River.opus","a":"Creedence Clearwater Revival","t":"Green River"},{"f":"Cristobal Tapia de Veer - Aloha! (Main Title Theme) - from “The White Lotus Season 1”.opus","a":"Cristobal Tapia de Veer","t":"Aloha! (Main Title Theme) - from “The White Lotus Season 1”"},{"f":"Cristobal Tapia de Veer - Renaissance (Main Title Theme) - from The White Lotus Season 2.opus","a":"Cristobal Tapia de Veer","t":"Renaissance (Main Title Theme) - from The White Lotus Season 2"},{"f":"Crosby, Stills & Nash - Just a Song Before I Go.opus","a":"Crosby, Stills & Nash","t":"Just a Song Before I Go"},{"f":"Cutting Crew - (I Just) Died in Your Arms.opus","a":"Cutting Crew","t":"(I Just) Died in Your Arms"},{"f":"DJ Laz - Esa Morena.opus","a":"DJ Laz","t":"Esa Morena"},{"f":"DJ Sabrina The Teenage DJ - Next To Me.opus","a":"DJ Sabrina The Teenage DJ","t":"Next To Me"},{"f":"DaBaby - BOP.opus","a":"DaBaby","t":"BOP"},{"f":"Damiano David - Next Summer.opus","a":"Damiano David","t":"Next Summer"},{"f":"Detroit Blues Band - Tears From My Eyes.opus","a":"Detroit Blues Band","t":"Tears From My Eyes"},{"f":"Dogleg - Bueno.opus","a":"Dogleg","t":"Bueno"},{"f":"Dogleg - Ender.opus","a":"Dogleg","t":"Ender"},{"f":"Dogleg - Fox.opus","a":"Dogleg","t":"Fox"},{"f":"Dogleg - Ganon Main.opus","a":"Dogleg","t":"Ganon Main"},{"f":"Dogleg - Headfirst.opus","a":"Dogleg","t":"Headfirst"},{"f":"Dogleg - Kawasaki Backflip.opus","a":"Dogleg","t":"Kawasaki Backflip"},{"f":"Dogleg - Prom Hell.opus","a":"Dogleg","t":"Prom Hell"},{"f":"Dogleg - Remember Alderaan.opus","a":"Dogleg","t":"Remember Alderaan"},{"f":"Dogleg - Star 67.opus","a":"Dogleg","t":"Star 67"},{"f":"Dogleg - Wartortle.opus","a":"Dogleg","t":"Wartortle"},{"f":"Donald Fagen - I.G.Y..opus","a":"Donald Fagen","t":"I.G.Y."},{"f":"Drake - Fair Trade (with Travis Scott).opus","a":"Drake","t":"Fair Trade (with Travis Scott)"},{"f":"Drake - Girls Want Girls (with Lil Baby).opus","a":"Drake","t":"Girls Want Girls (with Lil Baby)"},{"f":"Drake - Knife Talk (with 21 Savage ft. Project Pat).opus","a":"Drake","t":"Knife Talk (with 21 Savage ft. Project Pat)"},{"f":"Drake - Money In The Grave (Drake ft. Rick Ross).opus","a":"Drake","t":"Money In The Grave (Drake ft. Rick Ross)"},{"f":"Drake - Nice for What.opus","a":"Drake","t":"Nice for What"},{"f":"Drake - Omertà.opus","a":"Drake","t":"Omertà"},{"f":"Drake - Rich Flex.opus","a":"Drake","t":"Rich Flex"},{"f":"Ecco2K - Amygdala.opus","a":"Ecco2K","t":"Amygdala"},{"f":"Ecco2K - Peroxide.opus","a":"Ecco2K","t":"Peroxide"},{"f":"Ecco2K - Western Union.opus","a":"Ecco2K","t":"Western Union"},{"f":"Echelons aka Unable To Fully Embrace This Happiness - A Day Off Spent the Right Way.opus","a":"Echelons aka Unable To Fully Embrace This Happiness","t":"A Day Off Spent the Right Way"},{"f":"Echelons aka Unable To Fully Embrace This Happiness - I Quit My Job So I Could Play More Rpgs.opus","a":"Echelons aka Unable To Fully Embrace This Happiness","t":"I Quit My Job So I Could Play More Rpgs"},{"f":"Echelons aka Unable To Fully Embrace This Happiness - Pepper & Caraway Seed.opus","a":"Echelons aka Unable To Fully Embrace This Happiness","t":"Pepper & Caraway Seed"},{"f":"Echelons aka Unable To Fully Embrace This Happiness - Thank You Very Much for Gathering Today.opus","a":"Echelons aka Unable To Fully Embrace This Happiness","t":"Thank You Very Much for Gathering Today"},{"f":"Echelons aka Unable To Fully Embrace This Happiness - The Bright Lights of a Hidden City.opus","a":"Echelons aka Unable To Fully Embrace This Happiness","t":"The Bright Lights of a Hidden City"},{"f":"Echelons aka Unable To Fully Embrace This Happiness - The Flat Earth Society Has Members All Around the Globe.opus","a":"Echelons aka Unable To Fully Embrace This Happiness","t":"The Flat Earth Society Has Members All Around the Globe"},{"f":"Echelons aka Unable To Fully Embrace This Happiness - The Happy End Overshadows the Forthcoming Drama.opus","a":"Echelons aka Unable To Fully Embrace This Happiness","t":"The Happy End Overshadows the Forthcoming Drama"},{"f":"Echelons aka Unable To Fully Embrace This Happiness - The Journalist.opus","a":"Echelons aka Unable To Fully Embrace This Happiness","t":"The Journalist"},{"f":"Ella Langley - Choosin' Texas.opus","a":"Ella Langley","t":"Choosin' Texas"},{"f":"Elle - Frame by Frame.opus","a":"Elle","t":"Frame by Frame"},{"f":"Elle - X.opus","a":"Elle","t":"X"},{"f":"Eminem - Hailie's Song.opus","a":"Eminem","t":"Hailie's Song"},{"f":"Eminem - Love the Way You Lie.opus","a":"Eminem","t":"Love the Way You Lie"},{"f":"Eminem - No Love.opus","a":"Eminem","t":"No Love"},{"f":"Eminem - Rap God.opus","a":"Eminem","t":"Rap God"},{"f":"EsDeeKid - Phantom.opus","a":"EsDeeKid","t":"Phantom"},{"f":"Evanescence - My Immortal.opus","a":"Evanescence","t":"My Immortal"},{"f":"Fats - Dancing with the Devil.opus","a":"Fats","t":"Dancing with the Devil"},{"f":"Fetty Wap - 679 (Feat. Remy Boyz).opus","a":"Fetty Wap","t":"679 (Feat. Remy Boyz)"},{"f":"Fleetwood Mac - Dreams - 2004 Remaster.opus","a":"Fleetwood Mac","t":"Dreams - 2004 Remaster"},{"f":"Fleetwood Mac - Everywhere - 2017 Remaster.opus","a":"Fleetwood Mac","t":"Everywhere - 2017 Remaster"},{"f":"Fleetwood Mac - Landslide.opus","a":"Fleetwood Mac","t":"Landslide"},{"f":"Flipp Dinero - Leave Me Alone.opus","a":"Flipp Dinero","t":"Leave Me Alone"},{"f":"Flowers Taped to Pens - Jack Snes and Jeff Mango.opus","a":"Flowers Taped to Pens","t":"Jack Snes and Jeff Mango"},{"f":"Foxtails - Purge.opus","a":"Foxtails","t":"Purge"},{"f":"Foxtails - ego death.opus","a":"Foxtails","t":"ego death"},{"f":"Frail Body - Pastel.opus","a":"Frail Body","t":"Pastel"},{"f":"Frail Body - Your Death Makes Me Wish Heaven Was Real.opus","a":"Frail Body","t":"Your Death Makes Me Wish Heaven Was Real"},{"f":"Funeral Diner - borne upon my shield.opus","a":"Funeral Diner","t":"borne upon my shield"},{"f":"Future - Mask Off.opus","a":"Future","t":"Mask Off"},{"f":"Future - You Deserve It.opus","a":"Future","t":"You Deserve It"},{"f":"Gato Barbieri - Europa (Earth's Cry, Heaven's Smile).opus","a":"Gato Barbieri","t":"Europa (Earth's Cry, Heaven's Smile)"},{"f":"George Strait - Amarillo by Morning.opus","a":"George Strait","t":"Amarillo by Morning"},{"f":"Ghostface Killah - One.opus","a":"Ghostface Killah","t":"One"},{"f":"Gladys Knight & The Pips - Neither One Of Us (Wants To Be The First To Say Goodbye).opus","a":"Gladys Knight & The Pips","t":"Neither One Of Us (Wants To Be The First To Say Goodbye)"},{"f":"Glass Animals - Heat Waves.opus","a":"Glass Animals","t":"Heat Waves"},{"f":"Glass Beach - neon glow.opus","a":"Glass Beach","t":"neon glow"},{"f":"Grouper - Alien Observer.opus","a":"Grouper","t":"Alien Observer"},{"f":"Grouper - Come Softly - for Daniel D..opus","a":"Grouper","t":"Come Softly - for Daniel D."},{"f":"Grouper - Headache.opus","a":"Grouper","t":"Headache"},{"f":"Grouper - Heavy WaterI'd Rather Be Sleeping.opus","a":"Grouper","t":"Heavy WaterI'd Rather Be Sleeping"},{"f":"Grouper - I'm Clean Now.opus","a":"Grouper","t":"I'm Clean Now"},{"f":"Grouper - Little Gray Cat.opus","a":"Grouper","t":"Little Gray Cat"},{"f":"Grouper - Living Room.opus","a":"Grouper","t":"Living Room"},{"f":"Grouper - Poison Tree.opus","a":"Grouper","t":"Poison Tree"},{"f":"Grouper - The way her hair falls.opus","a":"Grouper","t":"The way her hair falls"},{"f":"Gunna - fukumean.opus","a":"Gunna","t":"fukumean"},{"f":"Halsey - Bad at Love.opus","a":"Halsey","t":"Bad at Love"},{"f":"Halsey - Without Me.opus","a":"Halsey","t":"Without Me"},{"f":"Hannah Diamond - Pink and Blue.opus","a":"Hannah Diamond","t":"Pink and Blue"},{"f":"Hop Along - How Simple.opus","a":"Hop Along","t":"How Simple"},{"f":"Hudson Westbrook - 5 to 9.opus","a":"Hudson Westbrook","t":"5 to 9"},{"f":"Hydracoque - Niggas in My Butthole.opus","a":"Hydracoque","t":"Niggas in My Butthole"},{"f":"I Hate Myself - Song Two.opus","a":"I Hate Myself","t":"Song Two"},{"f":"I Hate Myself - This Isn't the Tenka-Ichi-Budokai.opus","a":"I Hate Myself","t":"This Isn't the Tenka-Ichi-Budokai"},{"f":"I Hate Myself - To a Husband At War.opus","a":"I Hate Myself","t":"To a Husband At War"},{"f":"I Hate Sex - A Certain Kind of Luck.opus","a":"I Hate Sex","t":"A Certain Kind of Luck"},{"f":"I Hate Sex - And Yet It Moves.opus","a":"I Hate Sex","t":"And Yet It Moves"},{"f":"I Hate Sex - Dial Tone.opus","a":"I Hate Sex","t":"Dial Tone"},{"f":"I Hate Sex - Happy Anniversary.opus","a":"I Hate Sex","t":"Happy Anniversary"},{"f":"I Hate Sex - I Hate Sports.opus","a":"I Hate Sex","t":"I Hate Sports"},{"f":"I Hate Sex - January 24.opus","a":"I Hate Sex","t":"January 24"},{"f":"I Hate Sex - Mean Pills.opus","a":"I Hate Sex","t":"Mean Pills"},{"f":"I Hate Sex - Months and Months.opus","a":"I Hate Sex","t":"Months and Months"},{"f":"I Hate Sex - No Exit.opus","a":"I Hate Sex","t":"No Exit"},{"f":"I Hate Sex - One by Metallica.opus","a":"I Hate Sex","t":"One by Metallica"},{"f":"I Hate Sex - San Francisco.opus","a":"I Hate Sex","t":"San Francisco"},{"f":"I Hate Sex - Sleep Paralysis.opus","a":"I Hate Sex","t":"Sleep Paralysis"},{"f":"I Hate Sex - The Flood.opus","a":"I Hate Sex","t":"The Flood"},{"f":"I Hate Sex - Voodoo Dolls of Old Friends.opus","a":"I Hate Sex","t":"Voodoo Dolls of Old Friends"},{"f":"I Hate Sex - Worry.opus","a":"I Hate Sex","t":"Worry"},{"f":"I Hate Sex - You + Me = Slipknot.opus","a":"I Hate Sex","t":"You + Me = Slipknot"},{"f":"I Hate Sex - weird dream, conscious stream.opus","a":"I Hate Sex","t":"weird dream, conscious stream"},{"f":"I Would Set Myself on Fire for You - So This Is Our Home.opus","a":"I Would Set Myself on Fire for You","t":"So This Is Our Home"},{"f":"Indian Summer - Orchard.opus","a":"Indian Summer","t":"Orchard"},{"f":"Indigo De Souza - Hold U.opus","a":"Indigo De Souza","t":"Hold U"},{"f":"JPEGMAFIA - 1539 N. Calvert.opus","a":"JPEGMAFIA","t":"1539 N. Calvert"},{"f":"Jack Harlow - Nail Tech.opus","a":"Jack Harlow","t":"Nail Tech"},{"f":"Jack Harlow - Tyler Herro.opus","a":"Jack Harlow","t":"Tyler Herro"},{"f":"Jack Harlow - WHATS POPPIN.opus","a":"Jack Harlow","t":"WHATS POPPIN"},{"f":"Jack Harlow - Whats Poppin (remix) (feat. DaBaby, Lil Wayne & Tory Lanez).opus","a":"Jack Harlow","t":"Whats Poppin (remix) (feat. DaBaby, Lil Wayne & Tory Lanez)"},{"f":"Jai Paul - All Night - Unfinished.opus","a":"Jai Paul","t":"All Night - Unfinished"},{"f":"Jai Paul - BTSTU - Edit.opus","a":"Jai Paul","t":"BTSTU - Edit"},{"f":"Jai Paul - Chix - Unfinished.opus","a":"Jai Paul","t":"Chix - Unfinished"},{"f":"Jai Paul - Crush - Unfinished.opus","a":"Jai Paul","t":"Crush - Unfinished"},{"f":"Jai Paul - Do You Love Her Now.opus","a":"Jai Paul","t":"Do You Love Her Now"},{"f":"Jai Paul - He.opus","a":"Jai Paul","t":"He"},{"f":"Jai Paul - Str8 Outta Mumbai.opus","a":"Jai Paul","t":"Str8 Outta Mumbai"},{"f":"Jaxxon D. Silva - A Swollen Song.opus","a":"Jaxxon D. Silva","t":"A Swollen Song"},{"f":"Jay Sean - Down.opus","a":"Jay Sean","t":"Down"},{"f":"Jeffrey Osborne - On The Wings Of Love.opus","a":"Jeffrey Osborne","t":"On The Wings Of Love"},{"f":"Jessie Murph - Wild Ones (feat. Jelly Roll).opus","a":"Jessie Murph","t":"Wild Ones (feat. Jelly Roll)"},{"f":"Jessie Reyez - ADIÓS AMOR.opus","a":"Jessie Reyez","t":"ADIÓS AMOR"},{"f":"Jessie Reyez - FOREVER (with 6LACK).opus","a":"Jessie Reyez","t":"FOREVER (with 6LACK)"},{"f":"Jessie Reyez - MUTUAL FRIEND.opus","a":"Jessie Reyez","t":"MUTUAL FRIEND"},{"f":"Jessie Reyez - QUEEN ST. W.opus","a":"Jessie Reyez","t":"QUEEN ST. W"},{"f":"Jessie Reyez - STILL C U.opus","a":"Jessie Reyez","t":"STILL C U"},{"f":"Jimin - Who.opus","a":"Jimin","t":"Who"},{"f":"Johannes Brahms - Symphony No. 3 in F major, Op. 90 III. Poco allegretto.opus","a":"Johannes Brahms","t":"Symphony No. 3 in F major, Op. 90 III. Poco allegretto"},{"f":"Joyce Manor - Catalina Fight Song.opus","a":"Joyce Manor","t":"Catalina Fight Song"},{"f":"Joyce Manor - Constant Headache.opus","a":"Joyce Manor","t":"Constant Headache"},{"f":"Joyce Manor - Falling in Love Again.opus","a":"Joyce Manor","t":"Falling in Love Again"},{"f":"Joyce Manor - Last You Heard Of Me.opus","a":"Joyce Manor","t":"Last You Heard Of Me"},{"f":"Juice WRLD - Lucid Dreams.opus","a":"Juice WRLD","t":"Lucid Dreams"},{"f":"Kanye West - All Falls Down.opus","a":"Kanye West","t":"All Falls Down"},{"f":"Kanye West - Father Stretch My Hands Pt. 1.opus","a":"Kanye West","t":"Father Stretch My Hands Pt. 1"},{"f":"Kanye West - Follow God.opus","a":"Kanye West","t":"Follow God"},{"f":"Kanye West - Heartless.opus","a":"Kanye West","t":"Heartless"},{"f":"Kanye West - Hurricane.opus","a":"Kanye West","t":"Hurricane"},{"f":"Kanye West - I Love It (& Lil Pump).opus","a":"Kanye West","t":"I Love It (& Lil Pump)"},{"f":"Kanye West - Off the Grid.opus","a":"Kanye West","t":"Off the Grid"},{"f":"Kanye West - Praise God.opus","a":"Kanye West","t":"Praise God"},{"f":"Kanye West - True Love.opus","a":"Kanye West","t":"True Love"},{"f":"Kavinsky - Nightcall.opus","a":"Kavinsky","t":"Nightcall"},{"f":"King Von - Took Her To The O.opus","a":"King Von","t":"Took Her To The O"},{"f":"Kodak Black - Pimpin Ain't Eazy.opus","a":"Kodak Black","t":"Pimpin Ain't Eazy"},{"f":"Kodak Black - Transportin'.opus","a":"Kodak Black","t":"Transportin'"},{"f":"Kodak Black - ZEZE (feat. Travis Scott & Offset).opus","a":"Kodak Black","t":"ZEZE (feat. Travis Scott & Offset)"},{"f":"La Dispute - Nobody, Not Even the Rain.opus","a":"La Dispute","t":"Nobody, Not Even the Rain"},{"f":"La Dispute - Such Small Hands.opus","a":"La Dispute","t":"Such Small Hands"},{"f":"Lana Del Rey - Tulsa Jesus Freak.opus","a":"Lana Del Rey","t":"Tulsa Jesus Freak"},{"f":"Life - ametic.opus","a":"Life","t":"ametic"},{"f":"Lil Baby - Drip Too Hard (Lil Baby & Gunna).opus","a":"Lil Baby","t":"Drip Too Hard (Lil Baby & Gunna)"},{"f":"Lil Baby - Freestyle.opus","a":"Lil Baby","t":"Freestyle"},{"f":"Lil Baby - Pure Cocaine.opus","a":"Lil Baby","t":"Pure Cocaine"},{"f":"Lil Nas X - INDUSTRY BABY (feat. Jack Harlow).opus","a":"Lil Nas X","t":"INDUSTRY BABY (feat. Jack Harlow)"},{"f":"Lil Tecca - Ransom (with Juice WRLD) - Remix.opus","a":"Lil Tecca","t":"Ransom (with Juice WRLD) - Remix"},{"f":"Lil Tecca - Ransom.opus","a":"Lil Tecca","t":"Ransom"},{"f":"Lil Tjay - Calling My Phone.opus","a":"Lil Tjay","t":"Calling My Phone"},{"f":"Lil Tjay - F.N.opus","a":"Lil Tjay","t":"F.N"},{"f":"Lil Uzi Vert - XO TOUR Llif3.opus","a":"Lil Uzi Vert","t":"XO TOUR Llif3"},{"f":"Lil Wayne - YM Wasted.opus","a":"Lil Wayne","t":"YM Wasted"},{"f":"Lil' Wayne - Love Me.opus","a":"Lil' Wayne","t":"Love Me"},{"f":"Looking Glass - Brandy (You're A Fine Girl).opus","a":"Looking Glass","t":"Brandy (You're A Fine Girl)"},{"f":"Lord Snow - Selfish Sleep.opus","a":"Lord Snow","t":"Selfish Sleep"},{"f":"Lord Snow - She's Clearly Made the Most of It.opus","a":"Lord Snow","t":"She's Clearly Made the Most of It"},{"f":"Lord Snow - Solitude.opus","a":"Lord Snow","t":"Solitude"},{"f":"Luciano - Ballin.opus","a":"Luciano","t":"Ballin"},{"f":"Luciano - DRILLA.opus","a":"Luciano","t":"DRILLA"},{"f":"Luciano - Jäger.opus","a":"Luciano","t":"Jäger"},{"f":"Luciano - Meer.opus","a":"Luciano","t":"Meer"},{"f":"Luciano - Valentino Camouflage.opus","a":"Luciano","t":"Valentino Camouflage"},{"f":"Luke Combs - Ain't No Love in Oklahoma (From Twisters The Album).opus","a":"Luke Combs","t":"Ain't No Love in Oklahoma (From Twisters The Album)"},{"f":"Lustre - Green Worlds.opus","a":"Lustre","t":"Green Worlds"},{"f":"Lyvia - Reload.opus","a":"Lyvia","t":"Reload"},{"f":"MIMIDEATH - abusive.opus","a":"MIMIDEATH","t":"abusive"},{"f":"MJ Lenderman - Hangover Game.opus","a":"MJ Lenderman","t":"Hangover Game"},{"f":"MJ Lenderman - Someone Get The Grill Out Of The Rain.opus","a":"MJ Lenderman","t":"Someone Get The Grill Out Of The Rain"},{"f":"MJ Lenderman - Tastes Just Like It Costs.opus","a":"MJ Lenderman","t":"Tastes Just Like It Costs"},{"f":"Mary J. Blige - Family Affair.opus","a":"Mary J. Blige","t":"Family Affair"},{"f":"Max McNown - Better Me for You (Brown Eyes).opus","a":"Max McNown","t":"Better Me for You (Brown Eyes)"},{"f":"Mazzy Star - Fade Into You.opus","a":"Mazzy Star","t":"Fade Into You"},{"f":"Meek Mill - Going Bad (feat. Drake).opus","a":"Meek Mill","t":"Going Bad (feat. Drake)"},{"f":"Megan Moroney - 6 Months Later.opus","a":"Megan Moroney","t":"6 Months Later"},{"f":"Melanie Martinez - The Plague.opus","a":"Melanie Martinez","t":"The Plague"},{"f":"Metallica - Nothing Else Matters (Remastered).opus","a":"Metallica","t":"Nothing Else Matters (Remastered)"},{"f":"Metro Boomin - Creepin' (with The Weeknd & 21 Savage).opus","a":"Metro Boomin","t":"Creepin' (with The Weeknd & 21 Savage)"},{"f":"Metro Boomin - Space Cadet (feat. Gunna).opus","a":"Metro Boomin","t":"Space Cadet (feat. Gunna)"},{"f":"Michael Bublé - Sway.opus","a":"Michael Bublé","t":"Sway"},{"f":"Migos - Narcos.opus","a":"Migos","t":"Narcos"},{"f":"Migos - Stir Fry.opus","a":"Migos","t":"Stir Fry"},{"f":"Migos - Walk It Talk It.opus","a":"Migos","t":"Walk It Talk It"},{"f":"Morgan Wallen - Ain’t That Some.opus","a":"Morgan Wallen","t":"Ain’t That Some"},{"f":"Morgan Wallen - Cowgirls.opus","a":"Morgan Wallen","t":"Cowgirls"},{"f":"Morgan Wallen - I Got Better.opus","a":"Morgan Wallen","t":"I Got Better"},{"f":"Morgan Wallen - Just in Case.opus","a":"Morgan Wallen","t":"Just in Case"},{"f":"Morrissey - Irish Blood, English Heart.opus","a":"Morrissey","t":"Irish Blood, English Heart"},{"f":"Morrissey - Let Me Kiss You.opus","a":"Morrissey","t":"Let Me Kiss You"},{"f":"Mustard - Baguettes in the Face (feat. NAV, Playboi Carti & A Boogie wit da Hoodie).opus","a":"Mustard","t":"Baguettes in the Face (feat. NAV, Playboi Carti & A Boogie wit da Hoodie)"},{"f":"Mustard - Pure Water (with Migos).opus","a":"Mustard","t":"Pure Water (with Migos)"},{"f":"NF - Let You Down.opus","a":"NF","t":"Let You Down"},{"f":"Nas - The Message.opus","a":"Nas","t":"The Message"},{"f":"Neil Diamond - Heartlight.opus","a":"Neil Diamond","t":"Heartlight"},{"f":"Nirvana - Come as You Are.opus","a":"Nirvana","t":"Come as You Are"},{"f":"Nirvana - Heart-Shaped Box.opus","a":"Nirvana","t":"Heart-Shaped Box"},{"f":"Nixon (SWE) - She Keeps Me Alive.opus","a":"Nixon (SWE)","t":"She Keeps Me Alive"},{"f":"Noah Cyrus - July.opus","a":"Noah Cyrus","t":"July"},{"f":"Noah Kahan - Stick Season.opus","a":"Noah Kahan","t":"Stick Season"},{"f":"Nouns - dogs.opus","a":"Nouns","t":"dogs"},{"f":"Offset - Ric Flair Drip (with Metro Boomin).opus","a":"Offset","t":"Ric Flair Drip (with Metro Boomin)"},{"f":"Old Gray - Communion.opus","a":"Old Gray","t":"Communion"},{"f":"Old Gray - Everything Is In Your Hands.opus","a":"Old Gray","t":"Everything Is In Your Hands"},{"f":"Old Gray - Wolves.opus","a":"Old Gray","t":"Wolves"},{"f":"Ostraca - Waiting for the Crash.opus","a":"Ostraca","t":"Waiting for the Crash"},{"f":"PUP - DVP.opus","a":"PUP","t":"DVP"},{"f":"PUP - Dark Days.opus","a":"PUP","t":"Dark Days"},{"f":"PUP - Kids.opus","a":"PUP","t":"Kids"},{"f":"PUP - Morbid Stuff.opus","a":"PUP","t":"Morbid Stuff"},{"f":"Paloma Faith - Only Love Can Hurt Like This.opus","a":"Paloma Faith","t":"Only Love Can Hurt Like This"},{"f":"Pat Benatar - Love Is a Battlefield.opus","a":"Pat Benatar","t":"Love Is a Battlefield"},{"f":"Pianos Become the Teeth - Good Times.opus","a":"Pianos Become the Teeth","t":"Good Times"},{"f":"Pianos Become the Teeth - Such Confidence.opus","a":"Pianos Become the Teeth","t":"Such Confidence"},{"f":"Pink Floyd - Breathe (In the Air).opus","a":"Pink Floyd","t":"Breathe (In the Air)"},{"f":"Pink Floyd - Money.opus","a":"Pink Floyd","t":"Money"},{"f":"Pink Floyd - Time.opus","a":"Pink Floyd","t":"Time"},{"f":"Pixies - Where Is My Mind - 2007 Remaster.opus","a":"Pixies","t":"Where Is My Mind - 2007 Remaster"},{"f":"Polo G - Martin & Gina.opus","a":"Polo G","t":"Martin & Gina"},{"f":"Pop Evil - Torn to Pieces.opus","a":"Pop Evil","t":"Torn to Pieces"},{"f":"Portraits of Past - Bang Yer Head.opus","a":"Portraits of Past","t":"Bang Yer Head"},{"f":"Portraits of Past - Implications of a Sinkhole Personality.opus","a":"Portraits of Past","t":"Implications of a Sinkhole Personality"},{"f":"Portraits of Past - Kqed Equals Volvo.opus","a":"Portraits of Past","t":"Kqed Equals Volvo"},{"f":"Portraits of Past - Snicker Snicker.opus","a":"Portraits of Past","t":"Snicker Snicker"},{"f":"Portraits of Past - The Control Freak.opus","a":"Portraits of Past","t":"The Control Freak"},{"f":"Portraits of Past - The Outlook Is Bleak.opus","a":"Portraits of Past","t":"The Outlook Is Bleak"},{"f":"Post Malone - I Like You (A Happier Song) (with Doja Cat).opus","a":"Post Malone","t":"I Like You (A Happier Song) (with Doja Cat)"},{"f":"Quincy Jones - One Hundred Ways.opus","a":"Quincy Jones","t":"One Hundred Ways"},{"f":"Radiohead - All I Need.opus","a":"Radiohead","t":"All I Need"},{"f":"Radiohead - Jigsaw Falling Into Place.opus","a":"Radiohead","t":"Jigsaw Falling Into Place"},{"f":"Radiohead - Karma Police.opus","a":"Radiohead","t":"Karma Police"},{"f":"Radiohead - Nude.opus","a":"Radiohead","t":"Nude"},{"f":"Rae Sremmurd - No Type.opus","a":"Rae Sremmurd","t":"No Type"},{"f":"Rae Sremmurd - Swang.opus","a":"Rae Sremmurd","t":"Swang"},{"f":"Rema - Calm Down (with Selena Gomez).opus","a":"Rema","t":"Calm Down (with Selena Gomez)"},{"f":"Remember Sports - Get Bummed Out.opus","a":"Remember Sports","t":"Get Bummed Out"},{"f":"Rich Gang - Lifestyle.opus","a":"Rich Gang","t":"Lifestyle"},{"f":"SAINt JHN - Roses - Imanbek Remix.opus","a":"SAINt JHN","t":"Roses - Imanbek Remix"},{"f":"STOMACH BOOK - Casket Kids.opus","a":"STOMACH BOOK","t":"Casket Kids"},{"f":"STOMACH BOOK - Requiem.opus","a":"STOMACH BOOK","t":"Requiem"},{"f":"SZA - Kill Bill.opus","a":"SZA","t":"Kill Bill"},{"f":"Saetia - An Open Letter.opus","a":"Saetia","t":"An Open Letter"},{"f":"Saetia - Ariadne's Thread.opus","a":"Saetia","t":"Ariadne's Thread"},{"f":"Saetia - Corporeal.opus","a":"Saetia","t":"Corporeal"},{"f":"Saetia - Endymion.opus","a":"Saetia","t":"Endymion"},{"f":"Saetia - From the Firmament.opus","a":"Saetia","t":"From the Firmament"},{"f":"Saetia - Notres Langues Nous Trompent.opus","a":"Saetia","t":"Notres Langues Nous Trompent"},{"f":"Saetia - One Dying Wish.opus","a":"Saetia","t":"One Dying Wish"},{"f":"Saetia - Postlapsaria.opus","a":"Saetia","t":"Postlapsaria"},{"f":"Saetia - Some Natures Catch No Plagues.opus","a":"Saetia","t":"Some Natures Catch No Plagues"},{"f":"Saetia - The Burden of Reflecting.opus","a":"Saetia","t":"The Burden of Reflecting"},{"f":"Saetia - The Sweetness and the Light.opus","a":"Saetia","t":"The Sweetness and the Light"},{"f":"Saetia - Venus and Bacchus.opus","a":"Saetia","t":"Venus and Bacchus"},{"f":"Saetia - Woodwell.opus","a":"Saetia","t":"Woodwell"},{"f":"Salem - Starfall.opus","a":"Salem","t":"Starfall"},{"f":"Santana - Stormy.opus","a":"Santana","t":"Stormy"},{"f":"Saweetie - My Type.opus","a":"Saweetie","t":"My Type"},{"f":"Seals & Crofts - Summer Breeze.opus","a":"Seals & Crofts","t":"Summer Breeze"},{"f":"Selena Gomez - Good for You.opus","a":"Selena Gomez","t":"Good for You"},{"f":"Shaboozey - A Bar Song (Tipsy).opus","a":"Shaboozey","t":"A Bar Song (Tipsy)"},{"f":"Simple Minds - Don't You (Forget About Me).opus","a":"Simple Minds","t":"Don't You (Forget About Me)"},{"f":"Slothrust - Crockpot.opus","a":"Slothrust","t":"Crockpot"},{"f":"Smokey Robinson - Being With You.opus","a":"Smokey Robinson","t":"Being With You"},{"f":"Smokey Robinson - Just To See Her.opus","a":"Smokey Robinson","t":"Just To See Her"},{"f":"Sorority Noise - Art School Wannabe.opus","a":"Sorority Noise","t":"Art School Wannabe"},{"f":"Sorority Noise - Blonde Hair, Black Lungs.opus","a":"Sorority Noise","t":"Blonde Hair, Black Lungs"},{"f":"Sorority Noise - Mononokay.opus","a":"Sorority Noise","t":"Mononokay"},{"f":"Sorority Noise - No Halo.opus","a":"Sorority Noise","t":"No Halo"},{"f":"Sorority Noise - Using.opus","a":"Sorority Noise","t":"Using"},{"f":"Spanish Love Songs - Routine Pain.opus","a":"Spanish Love Songs","t":"Routine Pain"},{"f":"Spanish Love Songs - Self-Destruction (As a Sensible Career Choice).opus","a":"Spanish Love Songs","t":"Self-Destruction (As a Sensible Career Choice)"},{"f":"State Faults - Heat Death.opus","a":"State Faults","t":"Heat Death"},{"f":"State Faults - Leviathan.opus","a":"State Faults","t":"Leviathan"},{"f":"State Faults - No Gospel.opus","a":"State Faults","t":"No Gospel"},{"f":"State Faults - Palo Santo.opus","a":"State Faults","t":"Palo Santo"},{"f":"State Faults - Wildfires.opus","a":"State Faults","t":"Wildfires"},{"f":"Stevie Wonder - Isn't She Lovely.opus","a":"Stevie Wonder","t":"Isn't She Lovely"},{"f":"Stevie Wonder - Ribbon In The Sky.opus","a":"Stevie Wonder","t":"Ribbon In The Sky"},{"f":"Sufjan Stevens - Fourth of July.opus","a":"Sufjan Stevens","t":"Fourth of July"},{"f":"Sufjan Stevens - Will Anybody Ever Love Me.opus","a":"Sufjan Stevens","t":"Will Anybody Ever Love Me"},{"f":"Suis la lune - Eris Flies Tonight.opus","a":"Suis la lune","t":"Eris Flies Tonight"},{"f":"Suis la lune - Finger.Voice.Heart.Shake.Shake.Shake.opus","a":"Suis la lune","t":"Finger.Voice.Heart.Shake.Shake.Shake"},{"f":"Suis la lune - September Gave Us Akwardness, October Gave Me Nothing.opus","a":"Suis la lune","t":"September Gave Us Akwardness, October Gave Me Nothing"},{"f":"Suis la lune - The Greatest Actors Keep On Acting Offstage.opus","a":"Suis la lune","t":"The Greatest Actors Keep On Acting Offstage"},{"f":"Suis la lune - This Heart Easily Tears.opus","a":"Suis la lune","t":"This Heart Easily Tears"},{"f":"Suis la lune - Utter Silence Is Fragile.opus","a":"Suis la lune","t":"Utter Silence Is Fragile"},{"f":"Suis la lune - With Wings of Feathers and Glue.opus","a":"Suis la lune","t":"With Wings of Feathers and Glue"},{"f":"Sunny Day Real Estate - In Circles - Remastered.opus","a":"Sunny Day Real Estate","t":"In Circles - Remastered"},{"f":"System of a Down - Lonely Day.opus","a":"System of a Down","t":"Lonely Day"},{"f":"Taela - Good In Bed.opus","a":"Taela","t":"Good In Bed"},{"f":"Tate McRae - uh oh.opus","a":"Tate McRae","t":"uh oh"},{"f":"Taylor Swift - Anti-Hero.opus","a":"Taylor Swift","t":"Anti-Hero"},{"f":"Teddy Swims - Lose Control.opus","a":"Teddy Swims","t":"Lose Control"},{"f":"Thaiboy Digital - Lip Service.opus","a":"Thaiboy Digital","t":"Lip Service"},{"f":"Thanks For Coming - yr kind of cool.opus","a":"Thanks For Coming","t":"yr kind of cool"},{"f":"The Adventures - I Feel So Sure.opus","a":"The Adventures","t":"I Feel So Sure"},{"f":"The Afterimage - Aquamarine.opus","a":"The Afterimage","t":"Aquamarine"},{"f":"The Beach Boys - Our Prayer.opus","a":"The Beach Boys","t":"Our Prayer"},{"f":"The Beatles - I Saw Her Standing There - Remastered 2009.opus","a":"The Beatles","t":"I Saw Her Standing There - Remastered 2009"},{"f":"The Beatles - I've Just Seen A Face - Remastered 2009.opus","a":"The Beatles","t":"I've Just Seen A Face - Remastered 2009"},{"f":"The Beatles - Your Mother Should Know - Remastered 2009.opus","a":"The Beatles","t":"Your Mother Should Know - Remastered 2009"},{"f":"The Cat's Miaow - Not Like I Was Doing Anything.opus","a":"The Cat's Miaow","t":"Not Like I Was Doing Anything"},{"f":"The Futureheads - Hounds Of Love.opus","a":"The Futureheads","t":"Hounds Of Love"},{"f":"The Hotelier - Your Deep Rest.opus","a":"The Hotelier","t":"Your Deep Rest"},{"f":"The Kodan Armada - No Has Never Had 3 Letters.opus","a":"The Kodan Armada","t":"No Has Never Had 3 Letters"},{"f":"The Kodan Armada - Short Walks Down Long Roads.opus","a":"The Kodan Armada","t":"Short Walks Down Long Roads"},{"f":"The Magnetic Fields - Absolutely Cuckoo.opus","a":"The Magnetic Fields","t":"Absolutely Cuckoo"},{"f":"The Magnetic Fields - I Think I Need A New Heart.opus","a":"The Magnetic Fields","t":"I Think I Need A New Heart"},{"f":"The National - Afraid of Everyone.opus","a":"The National","t":"Afraid of Everyone"},{"f":"The National - Anyone's Ghost.opus","a":"The National","t":"Anyone's Ghost"},{"f":"The National - Bloodbuzz Ohio.opus","a":"The National","t":"Bloodbuzz Ohio"},{"f":"The National - Brainy.opus","a":"The National","t":"Brainy"},{"f":"The National - Don't Swallow the Cap.opus","a":"The National","t":"Don't Swallow the Cap"},{"f":"The National - Fake Empire.opus","a":"The National","t":"Fake Empire"},{"f":"The National - Fireproof.opus","a":"The National","t":"Fireproof"},{"f":"The National - Graceless.opus","a":"The National","t":"Graceless"},{"f":"The National - Green Gloves.opus","a":"The National","t":"Green Gloves"},{"f":"The National - I Need My Girl.opus","a":"The National","t":"I Need My Girl"},{"f":"The National - I Should Live in Salt.opus","a":"The National","t":"I Should Live in Salt"},{"f":"The National - Mistaken for Strangers.opus","a":"The National","t":"Mistaken for Strangers"},{"f":"The National - Sea of Love.opus","a":"The National","t":"Sea of Love"},{"f":"The National - Slow Show.opus","a":"The National","t":"Slow Show"},{"f":"The National - Sorrow.opus","a":"The National","t":"Sorrow"},{"f":"The National - Terrible Love.opus","a":"The National","t":"Terrible Love"},{"f":"The National - The System Only Dreams in Total Darkness.opus","a":"The National","t":"The System Only Dreams in Total Darkness"},{"f":"The National - This Is the Last Time.opus","a":"The National","t":"This Is the Last Time"},{"f":"The National - Weird Goodbyes (feat. Bon Iver).opus","a":"The National","t":"Weird Goodbyes (feat. Bon Iver)"},{"f":"The Red Clay Strays - Drowning.opus","a":"The Red Clay Strays","t":"Drowning"},{"f":"The Saddest Landscape - 'Til Our Ears Bleed.opus","a":"The Saddest Landscape","t":"'Til Our Ears Bleed"},{"f":"The Saddest Landscape - Admitting You're Alive.opus","a":"The Saddest Landscape","t":"Admitting You're Alive"},{"f":"The Saddest Landscape - Declaring War on Nostalgia.opus","a":"The Saddest Landscape","t":"Declaring War on Nostalgia"},{"f":"The Saddest Landscape - Eternity Is Lost on the Dying.opus","a":"The Saddest Landscape","t":"Eternity Is Lost on the Dying"},{"f":"The Saddest Landscape - Imperfect but Ours.opus","a":"The Saddest Landscape","t":"Imperfect but Ours"},{"f":"The Saddest Landscape - Souls Worth Saving.opus","a":"The Saddest Landscape","t":"Souls Worth Saving"},{"f":"The Saddest Landscape - The Sixth Golden Ticket.opus","a":"The Saddest Landscape","t":"The Sixth Golden Ticket"},{"f":"The Saddest Landscape - The Temptation That Is You.opus","a":"The Saddest Landscape","t":"The Temptation That Is You"},{"f":"The Saddest Landscape - With You I Could Never Be Alone.opus","a":"The Saddest Landscape","t":"With You I Could Never Be Alone"},{"f":"The Strokes - The Adults Are Talking.opus","a":"The Strokes","t":"The Adults Are Talking"},{"f":"The Stylistics - You Are Everything.opus","a":"The Stylistics","t":"You Are Everything"},{"f":"The Weeknd - Blinding Lights.opus","a":"The Weeknd","t":"Blinding Lights"},{"f":"The World Is a Beautiful Place & I Am No Longer Afraid to Die - In Circles.opus","a":"The World Is a Beautiful Place & I Am No Longer Afraid to Die","t":"In Circles"},{"f":"Tigers Jaw - Arms Across America.opus","a":"Tigers Jaw","t":"Arms Across America"},{"f":"Tigers Jaw - Between Your Band and the Other Band.opus","a":"Tigers Jaw","t":"Between Your Band and the Other Band"},{"f":"Tigers Jaw - Chemicals.opus","a":"Tigers Jaw","t":"Chemicals"},{"f":"Tigers Jaw - HEAT.opus","a":"Tigers Jaw","t":"HEAT"},{"f":"Tigers Jaw - I Saw Water.opus","a":"Tigers Jaw","t":"I Saw Water"},{"f":"Tigers Jaw - I Was Never Your Boyfriend.opus","a":"Tigers Jaw","t":"I Was Never Your Boyfriend"},{"f":"Tigers Jaw - Meals on Wheels.opus","a":"Tigers Jaw","t":"Meals on Wheels"},{"f":"Tigers Jaw - Never Saw It Coming.opus","a":"Tigers Jaw","t":"Never Saw It Coming"},{"f":"Tigers Jaw - Plane vs. Tank vs. Submarine.opus","a":"Tigers Jaw","t":"Plane vs. Tank vs. Submarine"},{"f":"Tigers Jaw - Spirit Desire.opus","a":"Tigers Jaw","t":"Spirit Desire"},{"f":"Tigers Jaw - The Sun.opus","a":"Tigers Jaw","t":"The Sun"},{"f":"Tiësto - 1035.opus","a":"Tiësto","t":"1035"},{"f":"Toru Okada - Kiss Me Through the Computer Screen.opus","a":"Toru Okada","t":"Kiss Me Through the Computer Screen"},{"f":"Touché Amoré - Flowers and You.opus","a":"Touché Amoré","t":"Flowers and You"},{"f":"Touché Amoré - Limelight.opus","a":"Touché Amoré","t":"Limelight"},{"f":"Touché Amoré - New Halloween.opus","a":"Touché Amoré","t":"New Halloween"},{"f":"Travis Scott - HIGHEST IN THE ROOM.opus","a":"Travis Scott","t":"HIGHEST IN THE ROOM"},{"f":"Travis Scott - SICKO MODE.opus","a":"Travis Scott","t":"SICKO MODE"},{"f":"Tropical Fuck Storm - You Let My Tyres Down.opus","a":"Tropical Fuck Storm","t":"You Let My Tyres Down"},{"f":"Two Knights - A Dime Is A Titan.opus","a":"Two Knights","t":"A Dime Is A Titan"},{"f":"Tyga - Taste (feat. Offset).opus","a":"Tyga","t":"Taste (feat. Offset)"},{"f":"Waxahatchee - Right Back To It.opus","a":"Waxahatchee","t":"Right Back To It"},{"f":"Waxahatchee - The Wolves.opus","a":"Waxahatchee","t":"The Wolves"},{"f":"Weatherday - Come in.opus","a":"Weatherday","t":"Come in"},{"f":"Whitney Houston - I Will Always Love You.opus","a":"Whitney Houston","t":"I Will Always Love You"},{"f":"Wicca Phase Springs Eternal - Rest.opus","a":"Wicca Phase Springs Eternal","t":"Rest"},{"f":"William Bonney - Dope Castle.opus","a":"William Bonney","t":"Dope Castle"},{"f":"William Bonney - Drug Lord.opus","a":"William Bonney","t":"Drug Lord"},{"f":"William Bonney - Leather Empire.opus","a":"William Bonney","t":"Leather Empire"},{"f":"William Bonney - No Pizza.opus","a":"William Bonney","t":"No Pizza"},{"f":"William Bonney - Red River.opus","a":"William Bonney","t":"Red River"},{"f":"William Bonney - Robbie Hansen.opus","a":"William Bonney","t":"Robbie Hansen"},{"f":"XXXTENTACION - HOPE.opus","a":"XXXTENTACION","t":"HOPE"},{"f":"XXXTENTACION - Look at Me!.opus","a":"XXXTENTACION","t":"Look at Me!"},{"f":"XXXTENTACION - Moonlight.opus","a":"XXXTENTACION","t":"Moonlight"},{"f":"YNW Melly - Murder On My Mind.opus","a":"YNW Melly","t":"Murder On My Mind"},{"f":"YNW Melly - Suicidal.opus","a":"YNW Melly","t":"Suicidal"},{"f":"Young Thug - Digits.opus","a":"Young Thug","t":"Digits"},{"f":"Young Thug - Hot (feat. Gunna).opus","a":"Young Thug","t":"Hot (feat. Gunna)"},{"f":"Young Thug - Power.opus","a":"Young Thug","t":"Power"},{"f":"Zach Bryan - Bowery (feat. Kings of Leon).opus","a":"Zach Bryan","t":"Bowery (feat. Kings of Leon)"},{"f":"Zach Bryan - Dawns (feat. Maggie Rogers).opus","a":"Zach Bryan","t":"Dawns (feat. Maggie Rogers)"},{"f":"Zach Bryan - I Remember Everything (feat. Kacey Musgraves).opus","a":"Zach Bryan","t":"I Remember Everything (feat. Kacey Musgraves)"},{"f":"Zach Bryan - Motorcycle Drive By.opus","a":"Zach Bryan","t":"Motorcycle Drive By"},{"f":"Zach Bryan - Nine Ball.opus","a":"Zach Bryan","t":"Nine Ball"},{"f":"Zach Bryan - Pink Skies.opus","a":"Zach Bryan","t":"Pink Skies"},{"f":"Zach Bryan - Plastic Cigarette.opus","a":"Zach Bryan","t":"Plastic Cigarette"},{"f":"Zach Bryan - Something in the Orange.opus","a":"Zach Bryan","t":"Something in the Orange"},{"f":"Zomby - Witch Hunt.opus","a":"Zomby","t":"Witch Hunt"},{"f":"awakebutstillinbed - life.opus","a":"awakebutstillinbed","t":"life"},{"f":"awakebutstillinbed - opener.opus","a":"awakebutstillinbed","t":"opener"},{"f":"awakebutstillinbed - stumble.opus","a":"awakebutstillinbed","t":"stumble"},{"f":"charlieonnafriday - Enough.opus","a":"charlieonnafriday","t":"Enough"},{"f":"ericdoa - movinglikeazombie - remix.opus","a":"ericdoa","t":"movinglikeazombie - remix"},{"f":"ericdoa, umru - movinglikeazombie (remix) (feat. SEBii, angelus, kmoe & Lewis Grant).opus","a":"ericdoa, umru","t":"movinglikeazombie (remix) (feat. SEBii, angelus, kmoe & Lewis Grant)"},{"f":"gapyear - ...and the Walls Are Lined With.opus","a":"gapyear","t":"...and the Walls Are Lined With"},{"f":"i9bonsai - funee monkee gif.opus","a":"i9bonsai","t":"funee monkee gif"},{"f":"lungskull - hate u.opus","a":"lungskull","t":"hate u"},{"f":"mewithoutYou - Messes of Men.opus","a":"mewithoutYou","t":"Messes of Men"},{"f":"trick the dog - pollute_me.opus","a":"trick the dog","t":"pollute_me"},{"f":"underscores - Bozo bozo bozo.opus","a":"underscores","t":"Bozo bozo bozo"}];
+const BUCKET = "https://jsc-fm-500-songs.s3.us-east-1.amazonaws.com/";
+
+const PALETTES = [
+  ['#0d0420', '#ff3b8d', '#7b2cff', '#ffce5e'],
+  ['#06121f', '#3ad6c8', '#3a6dd6', '#a3ffce'],
+  ['#1a0814', '#ff6b3d', '#ff2c7a', '#ffb24a'],
+  ['#0a1814', '#3df0a8', '#3da4f0', '#f0c93d'],
+  ['#140820', '#9b3dff', '#3d8aff', '#ff3dde'],
+  ['#1f0a06', '#ff8a3d', '#d63d6b', '#3dd6c4'],
+  ['#04141a', '#3dd6ff', '#a83dff', '#ffea3d'],
+  ['#160814', '#ff3d6b', '#3d6bff', '#3dd6a8'],
+  ['#0a1408', '#a8ff3d', '#3dd66b', '#ffd63d'],
+  ['#1a1004', '#ffb83d', '#ff3d3d', '#3d83ff'],
+  ['#080a14', '#6b8aff', '#3df0c4', '#ff6bb8'],
+  ['#180020', '#cc3dff', '#ff3d83', '#3df0c4'],
+  ['#001020', '#00d4ff', '#0080ff', '#ffd400'],
+  ['#100018', '#ff007a', '#7a00ff', '#00ffff'],
+  ['#0a0418', '#5d3dff', '#ff5d3d', '#3dffce'],
+  ['#0e0a04', '#f8d75e', '#f86b5e', '#5e9bf8']
+];
+
+// HASHING + RNG
+function hash32(str) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+function mulberry32(seed) {
+  let s = seed >>> 0;
+  return function() {
+    s = (s + 0x6D2B79F5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function hexToHsl(hex) {
+  const r = parseInt(hex.slice(1,3),16)/255;
+  const g = parseInt(hex.slice(3,5),16)/255;
+  const b = parseInt(hex.slice(5,7),16)/255;
+  const max = Math.max(r,g,b), min = Math.min(r,g,b);
+  let h, s, l = (max+min)/2;
+  if (max === min) { h = s = 0; }
+  else {
+    const d = max-min;
+    s = l > 0.5 ? d/(2-max-min) : d/(max+min);
+    switch (max) {
+      case r: h = (g-b)/d + (g<b?6:0); break;
+      case g: h = (b-r)/d + 2; break;
+      case b: h = (r-g)/d + 4; break;
+    }
+    h *= 60;
+  }
+  return [h, s*100, l*100];
+}
+function hexA(hex, a) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+function mix(hex1, hex2, t) {
+  const r1 = parseInt(hex1.slice(1,3),16), r2 = parseInt(hex2.slice(1,3),16);
+  const g1 = parseInt(hex1.slice(3,5),16), g2 = parseInt(hex2.slice(3,5),16);
+  const b1 = parseInt(hex1.slice(5,7),16), b2 = parseInt(hex2.slice(5,7),16);
+  return `rgb(${Math.round(r1+(r2-r1)*t)},${Math.round(g1+(g2-g1)*t)},${Math.round(b1+(b2-b1)*t)})`;
+}
+
+// PROCEDURAL ART
+function renderArt(canvas, artist, title) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const seed = hash32(artist + '|' + title);
+  const rnd = mulberry32(seed);
+  const palette = PALETTES[seed % PALETTES.length];
+  const [bg, c1, c2, c3] = palette;
+
+  ctx.save();
+  ctx.clearRect(0, 0, W, H);
+
+  // base
+  const baseGrad = ctx.createRadialGradient(W*0.5, H*0.4, 0, W*0.5, H*0.5, W*0.85);
+  baseGrad.addColorStop(0, mix(bg, c1, 0.18));
+  baseGrad.addColorStop(1, bg);
+  ctx.fillStyle = baseGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  // soft blobs (additive)
+  const nBlobs = 4 + Math.floor(rnd()*3);
+  ctx.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < nBlobs; i++) {
+    const x = rnd()*W;
+    const y = rnd()*H;
+    const r = (0.18 + rnd()*0.4) * W;
+    const color = [c1, c2, c3][Math.floor(rnd()*3)];
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, hexA(color, 0.55 + rnd()*0.25));
+    g.addColorStop(0.5, hexA(color, 0.22));
+    g.addColorStop(1, hexA(color, 0));
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+  }
+  ctx.globalCompositeOperation = 'source-over';
+
+  // flourish
+  const flourish = Math.floor(rnd()*4);
+  if (flourish === 0) {
+    // concentric arcs
+    const cx = (0.2 + rnd()*0.6)*W, cy = (0.2 + rnd()*0.6)*H;
+    ctx.strokeStyle = hexA(c3, 0.7);
+    ctx.lineWidth = 1.5;
+    for (let i = 0; i < 5; i++) {
+      const r = (0.16 + i*0.13) * W;
+      const start = rnd()*Math.PI*2;
+      const sweep = (Math.PI * (0.4 + rnd()*1.2));
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, start, start + sweep);
+      ctx.stroke();
+    }
+  } else if (flourish === 1) {
+    // angular ribbon
+    ctx.save();
+    ctx.fillStyle = hexA(c2, 0.42);
+    const y0 = (0.25 + rnd()*0.5)*H;
+    const ang = (rnd()-0.5)*0.7;
+    const w = 18 + rnd()*40;
+    ctx.translate(W/2, y0);
+    ctx.rotate(ang);
+    ctx.fillRect(-W, -w/2, W*2, w);
+    ctx.restore();
+  } else if (flourish === 2) {
+    // dot grid
+    ctx.fillStyle = hexA(c3, 0.4);
+    const step = 26;
+    for (let y = step/2; y < H; y += step) {
+      for (let x = step/2; x < W; x += step) {
+        const dx = x - W*0.5, dy = y - H*0.5;
+        const d = Math.sqrt(dx*dx + dy*dy);
+        const r = 1.3 + Math.max(0, (W*0.55 - d)/W*7);
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI*2);
+        ctx.fill();
+      }
+    }
+  } else {
+    // big circle outline
+    const cx = W*(0.3+rnd()*0.4), cy = H*(0.3+rnd()*0.4);
+    const r = W * (0.32 + rnd()*0.18);
+    ctx.strokeStyle = hexA(c3, 0.55);
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI*2);
+    ctx.stroke();
+  }
+
+  // small accents
+  ctx.fillStyle = hexA(c3, 0.55);
+  const tickN = 3 + Math.floor(rnd()*5);
+  for (let i = 0; i < tickN; i++) {
+    const x = rnd()*W;
+    const y = rnd()*H;
+    const s = 4 + rnd()*10;
+    ctx.fillRect(x, y, s, 1.5);
+  }
+
+  // vignette
+  const vg = ctx.createRadialGradient(W/2, H/2, W*0.3, W/2, H/2, W*0.78);
+  vg.addColorStop(0, 'rgba(0,0,0,0)');
+  vg.addColorStop(1, 'rgba(0,0,0,0.45)');
+  ctx.fillStyle = vg;
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.restore();
+  return hexToHsl(c1)[0];
+}
+
+// THUMB CACHE — small canvas thumbnails for the playlist
+const thumbCache = new Map();
+function thumbForTrack(track) {
+  const key = track.f;
+  if (thumbCache.has(key)) return thumbCache.get(key);
+  const c = document.createElement('canvas');
+  c.width = 80; c.height = 80;
+  renderArt(c, track.a, track.t);
+  const url = c.toDataURL('image/jpeg', 0.7);
+  thumbCache.set(key, url);
+  return url;
+}
+
+// STATE
+let queue = TRACKS.slice();
+let originalQueue = queue.slice();
+let currentIdx = 0;
+let isShuffled = false;
+let isRepeat = false;
+let isPlaying = false;
+let errorChain = 0;
+let mediaArtBlobUrl = null;
+
+// AUDIO ELEMENTS
+const audioA = document.getElementById('a1');
+const audioB = document.getElementById('a2');
+let active = audioA;
+let prefetch = audioB;
+
+function url(track) { return BUCKET + encodeURIComponent(track.f); }
+function trackAt(i) {
+  if (queue.length === 0) return null;
+  return queue[((i % queue.length) + queue.length) % queue.length];
+}
+
+function setActive(i, autoplay) {
+  if (queue.length === 0) return;
+  currentIdx = ((i % queue.length) + queue.length) % queue.length;
+  const t = queue[currentIdx];
+  document.body.classList.add('is-loading');
+  errorChain++; // resets to 0 once playing fires; a chain of >3 fails halts
+
+  // If prefetch already has the right track buffered, swap roles
+  if (prefetch.dataset.fileKey === t.f && prefetch.readyState >= 2) {
+    active.pause();
+    [active, prefetch] = [prefetch, active];
+    active.currentTime = 0;
+  } else {
+    active.pause();
+    active.src = url(t);
+    active.dataset.fileKey = t.f;
+    try { active.load(); } catch {}
+  }
+  active.loop = isRepeat;
+  active.volume = volPct() / 100;
+
+  updateNowPlaying(t);
+  highlightActiveRow(true);
+  primePrefetch();
+
+  if (autoplay) {
+    const p = active.play();
+    if (p) p.catch(() => {});
+  }
+}
+
+function primePrefetch() {
+  const t = trackAt(currentIdx + 1);
+  if (!t) return;
+  if (prefetch.dataset.fileKey === t.f) return;
+  prefetch.pause();
+  prefetch.src = url(t);
+  prefetch.dataset.fileKey = t.f;
+  prefetch.preload = 'auto';
+  prefetch.volume = volPct() / 100;
+  try { prefetch.load(); } catch {}
+}
+
+function next() { if (queue.length) setActive(currentIdx + 1, true); }
+function prev() {
+  if (active.currentTime > 3) { active.currentTime = 0; return; }
+  if (queue.length) setActive(currentIdx - 1, true);
+}
+function togglePlay() {
+  if (active.paused) {
+    const p = active.play();
+    if (p) p.catch(() => {});
+  } else {
+    active.pause();
+  }
+}
+
+// UI REFS
+const elTitle = document.querySelector('.title');
+const elArtist = document.querySelector('.artist');
+const elArt = document.querySelector('canvas.art');
+const elTimeCur = document.querySelector('.time-cur');
+const elTimeTot = document.querySelector('.time-tot');
+const elProgress = document.querySelector('.seek-progress');
+const elBuffer = document.querySelector('.seek-buffer');
+const elThumb = document.querySelector('.seek-thumb');
+const elSeek = document.getElementById('seek');
+const elPlay = document.getElementById('btn-play');
+const elPrev = document.getElementById('btn-prev');
+const elNext = document.getElementById('btn-next');
+const elShuffle = document.getElementById('btn-shuffle');
+const elRepeat = document.getElementById('btn-repeat');
+const elVol = document.getElementById('vol');
+const elSearch = document.getElementById('search');
+const elRows = document.getElementById('rows');
+const elCount = document.getElementById('count');
+const elToast = document.getElementById('toast');
+
+function fmt(t) {
+  if (!isFinite(t) || t < 0) return '0:00';
+  const m = Math.floor(t / 60);
+  const s = Math.floor(t % 60);
+  return m + ':' + (s<10 ? '0'+s : s);
+}
+function volPct() { return Number(elVol.value) || 0; }
+
+function updateNowPlaying(t) {
+  elTitle.textContent = t.t;
+  elArtist.textContent = t.a;
+  const hue = renderArt(elArt, t.a, t.t);
+  document.documentElement.style.setProperty('--accent-h', String(Math.round(hue)));
+  setMediaSession(t);
+}
+
+function setMediaSession(t) {
+  if (!('mediaSession' in navigator)) return;
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 512;
+  renderArt(c, t.a, t.t);
+  c.toBlob((blob) => {
+    if (!blob) return;
+    if (mediaArtBlobUrl) URL.revokeObjectURL(mediaArtBlobUrl);
+    mediaArtBlobUrl = URL.createObjectURL(blob);
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: t.t,
+        artist: t.a,
+        album: 'retard.mom',
+        artwork: [{ src: mediaArtBlobUrl, sizes: '512x512', type: 'image/png' }]
+      });
+    } catch {}
+  }, 'image/png');
+}
+
+function setupMediaSession() {
+  if (!('mediaSession' in navigator)) return;
+  const set = (a, fn) => { try { navigator.mediaSession.setActionHandler(a, fn); } catch {} };
+  set('play', () => { const p = active.play(); if (p) p.catch(()=>{}); });
+  set('pause', () => active.pause());
+  set('previoustrack', prev);
+  set('nexttrack', next);
+  set('seekto', (e) => {
+    if (e.fastSeek && 'fastSeek' in active) active.fastSeek(e.seekTime);
+    else if (typeof e.seekTime === 'number') active.currentTime = e.seekTime;
+  });
+  set('seekbackward', (e) => { active.currentTime = Math.max(0, active.currentTime - (e.seekOffset||10)); });
+  set('seekforward', (e) => { active.currentTime = Math.min(active.duration||0, active.currentTime + (e.seekOffset||10)); });
+}
+
+function updateProgress() {
+  const dur = active.duration || 0;
+  const cur = active.currentTime || 0;
+  const pct = dur ? Math.max(0, Math.min(100, (cur/dur)*100)) : 0;
+  elProgress.style.width = pct + '%';
+  elThumb.style.left = pct + '%';
+  elTimeCur.textContent = fmt(cur);
+  elTimeTot.textContent = fmt(dur);
+  if (active.buffered && active.buffered.length) {
+    let end = 0;
+    for (let i = 0; i < active.buffered.length; i++) {
+      if (active.buffered.start(i) <= cur) end = Math.max(end, active.buffered.end(i));
+    }
+    if (!end) end = active.buffered.end(active.buffered.length-1);
+    elBuffer.style.width = (dur ? Math.min(100, (end/dur)*100) : 0) + '%';
+  }
+  if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession && dur) {
+    try { navigator.mediaSession.setPositionState({ duration: dur, position: Math.min(cur, dur), playbackRate: active.playbackRate || 1 }); } catch {}
+  }
+}
+
+function highlightActiveRow(scroll) {
+  const rows = elRows.querySelectorAll('.row');
+  rows.forEach(r => {
+    const idx = Number(r.dataset.idx);
+    r.classList.toggle('is-active', idx === currentIdx);
+    r.classList.toggle('is-paused', !isPlaying);
+  });
+  if (scroll) {
+    const a = elRows.querySelector('.row.is-active');
+    if (a) a.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+}
+
+function renderPlaylist(filter) {
+  filter = (filter || '').trim().toLowerCase();
+  const frag = document.createDocumentFragment();
+  let visible = 0;
+  for (let i = 0; i < queue.length; i++) {
+    const t = queue[i];
+    if (filter && !(t.a.toLowerCase().includes(filter) || t.t.toLowerCase().includes(filter))) continue;
+    const li = document.createElement('li');
+    li.className = 'row';
+    li.dataset.idx = String(i);
+    if (i === currentIdx) li.classList.add('is-active');
+    if (!isPlaying) li.classList.add('is-paused');
+    li.innerHTML =
+      '<img class="thumb" src="' + thumbForTrack(t) + '" alt="" draggable="false">' +
+      '<div class="info">' +
+        '<div class="row-title">' + escapeHtml(t.t) + '</div>' +
+        '<div class="row-artist">' + escapeHtml(t.a) + '</div>' +
+      '</div>' +
+      '<div class="eq" aria-hidden="true"><span></span><span></span><span></span></div>' +
+      '<div class="swipe-hint">Remove</div>';
+    frag.appendChild(li);
+    visible++;
+  }
+  elRows.replaceChildren(frag);
+  elCount.textContent = (visible === queue.length) ? String(queue.length) : (visible + ' / ' + queue.length);
+}
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function setShuffle(on) {
+  if (on === isShuffled) return;
+  const currentTrack = queue[currentIdx];
+  if (on) {
+    originalQueue = queue.slice();
+    const arr = queue.slice();
+    for (let i = arr.length-1; i > 0; i--) {
+      const j = Math.floor(Math.random()*(i+1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    const idx = arr.findIndex(x => x.f === currentTrack.f);
+    if (idx > 0) [arr[0], arr[idx]] = [arr[idx], arr[0]];
+    queue = arr;
+    currentIdx = 0;
+  } else {
+    const present = new Set(queue.map(x => x.f));
+    queue = originalQueue.filter(x => present.has(x.f));
+    currentIdx = Math.max(0, queue.findIndex(x => x.f === currentTrack.f));
+  }
+  isShuffled = on;
+  elShuffle.classList.toggle('is-on', on);
+  toast(on ? 'Shuffle on' : 'Shuffle off');
+  renderPlaylist(elSearch.value);
+  primePrefetch();
+}
+
+function setRepeat(on) {
+  isRepeat = on;
+  active.loop = on;
+  elRepeat.classList.toggle('is-on', on);
+  toast(on ? 'Repeat on' : 'Repeat off');
+}
+
+let toastT;
+function toast(msg) {
+  elToast.textContent = msg;
+  elToast.classList.add('is-show');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => elToast.classList.remove('is-show'), 1800);
+}
+
+function debounce(fn, ms) {
+  let t;
+  return function() {
+    const args = arguments;
+    clearTimeout(t);
+    t = setTimeout(() => fn.apply(null, args), ms);
+  };
+}
+
+// CONTROLS
+elPlay.addEventListener('click', togglePlay);
+elPrev.addEventListener('click', prev);
+elNext.addEventListener('click', next);
+elShuffle.addEventListener('click', () => setShuffle(!isShuffled));
+elRepeat.addEventListener('click', () => setRepeat(!isRepeat));
+elVol.addEventListener('input', () => {
+  const v = volPct() / 100;
+  active.volume = v;
+  prefetch.volume = v;
+});
+
+// AUDIO EVENTS
+[audioA, audioB].forEach(a => {
+  a.addEventListener('play', () => { if (a === active) { isPlaying = true; updatePlayState(); } });
+  a.addEventListener('pause', () => { if (a === active) { isPlaying = false; updatePlayState(); } });
+  a.addEventListener('ended', () => { if (a === active) onEnded(); });
+  a.addEventListener('timeupdate', () => { if (a === active) updateProgress(); });
+  a.addEventListener('progress', () => { if (a === active) updateProgress(); });
+  a.addEventListener('loadedmetadata', () => { if (a === active) { document.body.classList.remove('is-loading'); updateProgress(); } });
+  a.addEventListener('canplay', () => { if (a === active) document.body.classList.remove('is-loading'); });
+  a.addEventListener('playing', () => { if (a === active) { errorChain = 0; document.body.classList.remove('is-loading'); } });
+  a.addEventListener('waiting', () => { if (a === active) document.body.classList.add('is-loading'); });
+  a.addEventListener('error', () => { if (a === active) onError(); });
+});
+
+function onEnded() {
+  if (isRepeat) {
+    active.currentTime = 0;
+    active.play().catch(() => {});
+    return;
+  }
+  next();
+}
+function onError() {
+  if (errorChain > 3) {
+    toast('Playback halted — network problem');
+    isPlaying = false;
+    updatePlayState();
+    return;
+  }
+  toast('Could not play "' + queue[currentIdx].t + '" — skipping');
+  setTimeout(next, 700);
+}
+
+function updatePlayState() {
+  document.body.classList.toggle('is-playing', isPlaying);
+  elPlay.querySelector('svg').innerHTML = isPlaying
+    ? '<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>'
+    : '<path d="M8 5v14l11-7z"/>';
+  elPlay.setAttribute('aria-label', isPlaying ? 'Pause' : 'Play');
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+  }
+  highlightActiveRow(false);
+}
+
+// SEEK
+let seeking = false;
+function seekFromEvent(e) {
+  const rect = elSeek.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const pct = Math.max(0, Math.min(1, x / rect.width));
+  if (isFinite(active.duration) && active.duration > 0) {
+    active.currentTime = pct * active.duration;
+    elProgress.style.width = (pct*100) + '%';
+    elThumb.style.left = (pct*100) + '%';
+  }
+}
+elSeek.addEventListener('pointerdown', (e) => {
+  seeking = true;
+  elSeek.classList.add('is-dragging');
+  try { elSeek.setPointerCapture(e.pointerId); } catch {}
+  seekFromEvent(e);
+});
+elSeek.addEventListener('pointermove', (e) => { if (seeking) seekFromEvent(e); });
+elSeek.addEventListener('pointerup', (e) => {
+  seeking = false;
+  elSeek.classList.remove('is-dragging');
+  try { elSeek.releasePointerCapture(e.pointerId); } catch {}
+});
+elSeek.addEventListener('pointercancel', () => { seeking = false; elSeek.classList.remove('is-dragging'); });
+
+// PLAYLIST: tap to play, swipe-left to remove
+let swipeRow = null;
+let swipeStartX = 0, swipeStartY = 0;
+let swipeDx = 0;
+let swipeBlocked = false;
+let swipeStarted = false;
+
+elRows.addEventListener('pointerdown', (e) => {
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  const row = e.target.closest('.row');
+  if (!row) return;
+  swipeRow = row;
+  swipeStartX = e.clientX;
+  swipeStartY = e.clientY;
+  swipeDx = 0;
+  swipeBlocked = false;
+  swipeStarted = false;
+  row.dataset.pid = String(e.pointerId);
+});
+elRows.addEventListener('pointermove', (e) => {
+  if (!swipeRow || swipeRow.dataset.pid !== String(e.pointerId)) return;
+  const dx = e.clientX - swipeStartX;
+  const dy = e.clientY - swipeStartY;
+  if (!swipeStarted) {
+    if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 8) {
+      swipeBlocked = true;
+      return;
+    }
+    if (dx < -8) {
+      swipeStarted = true;
+      swipeRow.classList.add('is-swiping');
+      try { swipeRow.setPointerCapture(e.pointerId); } catch {}
+    }
+  }
+  if (swipeStarted && !swipeBlocked) {
+    swipeDx = Math.max(dx, -180);
+    swipeRow.style.transform = `translateX(${swipeDx}px)`;
+  }
+});
+elRows.addEventListener('pointerup', (e) => {
+  if (!swipeRow || swipeRow.dataset.pid !== String(e.pointerId)) return;
+  const r = swipeRow;
+  swipeRow = null;
+  if (swipeStarted) {
+    if (swipeDx <= -90) {
+      const idx = Number(r.dataset.idx);
+      removeAt(idx, r);
+      return;
+    }
+    r.classList.remove('is-swiping');
+    r.style.transform = '';
+    swipeDx = 0;
+  } else if (!swipeBlocked) {
+    const idx = Number(r.dataset.idx);
+    setActive(idx, true);
+  }
+});
+elRows.addEventListener('pointercancel', (e) => {
+  if (swipeRow && swipeRow.dataset.pid === String(e.pointerId)) {
+    swipeRow.classList.remove('is-swiping');
+    swipeRow.style.transform = '';
+    swipeRow = null;
+    swipeDx = 0;
+  }
+});
+
+function removeAt(idx, rowEl) {
+  if (idx < 0 || idx >= queue.length || queue.length <= 1) {
+    if (rowEl) { rowEl.classList.remove('is-swiping'); rowEl.style.transform = ''; }
+    return;
+  }
+  const removed = queue[idx];
+  rowEl.style.transform = 'translateX(-110%)';
+  rowEl.classList.add('is-removing');
+  setTimeout(() => {
+    queue.splice(idx, 1);
+    originalQueue = originalQueue.filter(x => x.f !== removed.f);
+    let needAdvance = false;
+    if (idx === currentIdx) needAdvance = true;
+    else if (idx < currentIdx) currentIdx--;
+    if (currentIdx >= queue.length) currentIdx = queue.length - 1;
+    if (currentIdx < 0) currentIdx = 0;
+    renderPlaylist(elSearch.value);
+    if (needAdvance && queue.length > 0) setActive(currentIdx, isPlaying);
+    else primePrefetch();
+    toast('Removed "' + removed.t + '"');
+  }, 360);
+}
+
+// SEARCH
+elSearch.addEventListener('input', debounce(() => {
+  renderPlaylist(elSearch.value);
+}, 80));
+
+// KEYBOARD
+window.addEventListener('keydown', (e) => {
+  const tag = (e.target && e.target.tagName) || '';
+  if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  switch (e.key) {
+    case ' ': case 'k': e.preventDefault(); togglePlay(); break;
+    case 'ArrowLeft':
+      e.preventDefault();
+      if (e.shiftKey) prev();
+      else if (isFinite(active.duration)) active.currentTime = Math.max(0, active.currentTime - 5);
+      break;
+    case 'ArrowRight':
+      e.preventDefault();
+      if (e.shiftKey) next();
+      else if (isFinite(active.duration)) active.currentTime = Math.min(active.duration, active.currentTime + 5);
+      break;
+    case 'ArrowUp':
+      e.preventDefault();
+      elVol.value = String(Math.min(100, volPct() + 5));
+      elVol.dispatchEvent(new Event('input'));
+      break;
+    case 'ArrowDown':
+      e.preventDefault();
+      elVol.value = String(Math.max(0, volPct() - 5));
+      elVol.dispatchEvent(new Event('input'));
+      break;
+    case 'n': case 'N': next(); break;
+    case 'p': case 'P': prev(); break;
+    case 's': case 'S': setShuffle(!isShuffled); break;
+    case 'r': case 'R': setRepeat(!isRepeat); break;
+    case '/': e.preventDefault(); elSearch.focus(); elSearch.select(); break;
+  }
+});
+
+// INIT
+audioA.volume = audioB.volume = volPct() / 100;
+setupMediaSession();
+renderPlaylist();
+
+if (queue.length > 0) {
+  // load track 0 metadata so info shows; user click to play
+  const t = queue[0];
+  active.src = url(t);
+  active.dataset.fileKey = t.f;
+  updateNowPlaying(t);
+  primePrefetch();
+}
+
+// Codec sniff: warn if Opus is unsupported (iOS Safari < 17 quirk)
+(function() {
+  const a = document.createElement('audio');
+  const ogg = a.canPlayType('audio/ogg; codecs="opus"');
+  if (!ogg) {
+    setTimeout(() => toast("Heads up: your browser may not play .opus audio"), 1400);
+  }
+})();
+
+// SERVICE WORKER
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
