@@ -709,8 +709,10 @@ btnShuffle.addEventListener('click', ()=>{
   if(currentSongIdx>=0){
     const ni = queue.indexOf(currentSongIdx);
     if(ni>=0) currentIdx = ni;
+    else currentIdx = queue.length ? 0 : -1;
   }
   renderList(searchEl.value);
+  prefetchNext();
   showToast(shuffle ? 'Shuffle on' : 'Shuffle off');
 });
 btnRepeat.addEventListener('click', ()=>{
